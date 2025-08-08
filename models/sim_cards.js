@@ -1,4 +1,3 @@
-
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
@@ -13,7 +12,7 @@ const SimCard = sequelize.define('SimCard', {
     unique: true,
     allowNull: false,
   },
-  package_id: {
+  package_id: {  // Burada packages_id değil, package_id olmalı!
     type: DataTypes.INTEGER,
     allowNull: false,
   },

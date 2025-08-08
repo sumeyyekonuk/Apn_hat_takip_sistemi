@@ -31,5 +31,29 @@ router.put('/:id', auth(['admin', 'user']), allocationsController.update);  //PU
 
 router.delete('/:id', auth(['admin']), allocationsController.remove);
 
+/**
+ * @swagger
+ * tags:
+ *   name: Allocations
+ *   description: Hat tahsis işlemleri
+ */
+
+/**
+ * @swagger
+ * /api/allocations:
+ *   get:
+ *     summary: Tüm tahsisleri listeler
+ *     tags: [Allocations]
+ *     responses:
+ *       200:
+ *         description: Başarılı
+ */
+router.get('/', allocationsController.getAll);
+
+router.get('/:id', allocationsController.getById);
+router.post('/', allocationsController.create);
+router.put('/:id', allocationsController.update);
+router.delete('/:id', allocationsController.remove);
+
 module.exports = router;   // Bu router'ı dışa aktarır.
 // Başka bir dosyada bu router kullanılabilir:

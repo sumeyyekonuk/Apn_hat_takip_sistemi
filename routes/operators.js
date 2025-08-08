@@ -9,16 +9,14 @@
 // Bu fonksiyonlar da veritabanı ile ilgili işlemleri yapar (veri çekme, ekleme vs).
 
 
-const express = require('express'); // Express framework'ünü yüklüyoruz
-const router = express.Router(); // Yeni bir router (yönlendirici) nesnesi oluşturuyoruz
-const operatorsController = require('../controllers/operatorsController'); // Operatör işlemlerini içeren controller dosyasını yüklüyoruz
+const express = require('express');
+const router = express.Router();
+const operatorsController = require('../controllers/operatorsController');
 
-// GET /api/operators — Tüm operatörleri veritabanından getir
-router.get('/', operatorsController.getAllOperators); 
-// Bu satır şunu der: "Kullanıcı /api/operators adresine GET isteği gönderirse, getAllOperators fonksiyonunu çalıştır."
+router.get('/', operatorsController.getAll);
+router.post('/', operatorsController.create);
+router.get('/:id', operatorsController.getById);
+router.put('/:id', operatorsController.update);
+router.delete('/:id', operatorsController.remove);
 
-// POST /api/operators — Yeni bir operatör ekle
-router.post('/', operatorsController.createOperator); 
-// Bu satır da şunu der: "Kullanıcı aynı adrese POST isteği gönderirse, createOperator fonksiyonunu çalıştır."
-
-module.exports = router; // Bu router'ı dışa aktarıyoruz ki app.js (veya index.js) içinde kullanılabilsin
+module.exports = router;

@@ -1,13 +1,10 @@
+const Operator = require('./operator');
+const Package = require('./packages');
+const SimCard = require('./sim_cards');
+const Customer = require('./customer');
+const Allocation = require('./allocations');
 
-const Operator = require('./operator');   // Operator modelini içe aktarıyoruz
-const { DataTypes } = require('sequelize'); // Sequelize kütüphanesinden Data
-const Package = require('./package');  // Package modelini içe aktarıyoruz
-const SimCard = require('./sim_card');  // SimCard modelini içe aktarıyoruz
-const Customer = require('./customer');   // Customer modelini içe aktarıyoruz
-// Allocation modelini içe aktarıyoruz. Bu model allocations tablosunu temsil edecek
-const Allocation = require('./allocations');  // Allocation modelini içe aktarıyoruz
-
-// İlişkiler (Associations)
+// İlişkiler
 
 // Operator - Package
 Operator.hasMany(Package, { foreignKey: 'operator_id' });
@@ -25,9 +22,9 @@ Allocation.belongsTo(Customer, { foreignKey: 'customer_id' });
 SimCard.hasMany(Allocation, { foreignKey: 'sim_card_id' });
 Allocation.belongsTo(SimCard, { foreignKey: 'sim_card_id' });
 
-module.exports = {    // Dışa aktarılan modeller. Yani bu dosyayı bir başka yerde şöyle kullanabilirsin:
-  Operator,          //const { Operator, Package, Customer } = require('./models');
-  Package,            //Artık bu modeller başka dosyada da hazır bir şekilde kullanıma açık olur. Bu, modülerlik sağlar.
+module.exports = {
+  Operator,
+  Package,
   SimCard,
   Customer,
   Allocation

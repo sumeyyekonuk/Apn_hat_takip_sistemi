@@ -8,4 +8,38 @@ router.get('/operator-distribution', auth(['admin', 'user']), reportsController.
 router.get('/customer-allocations', auth(['admin', 'user']), reportsController.customerAllocations);
 router.get('/allocations-by-date', auth(['admin', 'user']), reportsController.allocationsByDate);
 
+/**
+ * @swagger
+ * tags:
+ *   name: Reports
+ *   description: Raporlama işlemleri
+ */
+
+/**
+ * @swagger
+ * /api/reports/active-sim-count:
+ *   get:
+ *     summary: Aktif hat sayısını döndürür
+ *     tags: [Reports]
+ *     responses:
+ *       200:
+ *         description: Başarılı
+ */
+router.get('/active-sim-count', reportsController.activeSimCardCount);
+
+/**
+ * @swagger
+ * /api/reports/operator-distribution:
+ *   get:
+ *     summary: Operatör bazlı hat dağılımı
+ *     tags: [Reports]
+ *     responses:
+ *       200:
+ *         description: Başarılı
+ */
+router.get('/operator-distribution', reportsController.operatorDistribution);
+
+router.get('/customer-allocations', reportsController.customerAllocations);
+router.get('/allocations-by-date', reportsController.allocationsByDate);
+
 module.exports = router;
