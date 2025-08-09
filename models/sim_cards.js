@@ -12,7 +12,7 @@ const SimCard = sequelize.define('SimCard', {
     unique: true,
     allowNull: false,
   },
-  package_id: {  // Burada packages_id değil, package_id olmalı!
+  package_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
@@ -32,7 +32,9 @@ const SimCard = sequelize.define('SimCard', {
   },
 }, {
   tableName: 'sim_cards',
-  timestamps: false,
+  timestamps: true,          // timestamps aktif
+  createdAt: 'createdAt',    // veritabanındaki createdAt kolonuna karşılık
+  updatedAt: 'updatedAt',    // veritabanındaki updatedAt kolonuna karşılık
 });
 
 module.exports = SimCard;
