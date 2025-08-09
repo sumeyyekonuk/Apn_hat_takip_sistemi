@@ -13,23 +13,6 @@ const allocationsController = require('../controllers/allocationsController');  
 
 const auth = require('../middleware/auth');
 
-// Listeleme herkes erişebilir (örnek)
-router.get('/', allocationsController.getAll);  // tüm tahsis edilen hatları listele 
-router.get('/:id', allocationsController.getById);  
-
-// Sadece admin ve user rolü erişebilir
-router.post('/', auth(['admin', 'user']), allocationsController.create);   //POST /allocations
-// Yeni bir tahsis (Allocation) kaydı oluşturur.
-// Gelen veriler req.body içindedir.
-// create fonksiyonu çalışır.
-//Kullanım: "Yeni bir müşteri için hat tahsisi yap
-router.put('/:id', auth(['admin', 'user']), allocationsController.update);  //PUT /allocations/5
-// Mevcut bir tahsis kaydını günceller.
-// Hangi tahsis güncellenecek? → :id
-// Yeni bilgiler → req.body
-// Kullanım: "5 numaralı tahsisin bilgilerini güncelle"
-
-router.delete('/:id', auth(['admin']), allocationsController.remove);
 
 /**
  * @swagger
@@ -54,6 +37,27 @@ router.get('/:id', allocationsController.getById);
 router.post('/', allocationsController.create);
 router.put('/:id', allocationsController.update);
 router.delete('/:id', allocationsController.remove);
+
+
+// Listeleme herkes erişebilir (örnek)
+router.get('/', allocationsController.getAll);  // tüm tahsis edilen hatları listele 
+router.get('/:id', allocationsController.getById);  
+
+// Sadece admin ve user rolü erişebilir
+router.post('/', auth(['admin', 'user']), allocationsController.create);   //POST /allocations
+// Yeni bir tahsis (Allocation) kaydı oluşturur.
+// Gelen veriler req.body içindedir.
+// create fonksiyonu çalışır.
+//Kullanım: "Yeni bir müşteri için hat tahsisi yap
+router.put('/:id', auth(['admin', 'user']), allocationsController.update);  //PUT /allocations/5
+// Mevcut bir tahsis kaydını günceller.
+// Hangi tahsis güncellenecek? → :id
+// Yeni bilgiler → req.body
+// Kullanım: "5 numaralı tahsisin bilgilerini güncelle"
+
+router.delete('/:id', auth(['admin']), allocationsController.remove);
+
+
 
 module.exports = router;   // Bu router'ı dışa aktarır.
 // Başka bir dosyada bu router kullanılabilir:

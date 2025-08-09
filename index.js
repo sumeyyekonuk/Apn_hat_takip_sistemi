@@ -26,7 +26,7 @@ app.use('/api/operators', operatorsRoute);
 app.use('/api/sim-cards', simCardsRoute);
 app.use('/api/packages', packagesRoute);
 app.use('/api/customers', customersRoute);
-app.use('/api/allocation', allocationRoute);
+app.use('/api/allocations', allocationRoute);
 app.use('/api/auth', authRoutes);
 app.use('/api/reports', reportsRoute);
 

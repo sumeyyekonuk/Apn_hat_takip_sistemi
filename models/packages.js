@@ -29,7 +29,7 @@ const Package = sequelize.define('Package', {
   },
 }, {
   tableName: 'packages',
-  timestamps: true,
+  timestamps: false,
 });
 
 module.exports = Package;

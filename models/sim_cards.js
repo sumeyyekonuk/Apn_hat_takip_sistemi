@@ -32,7 +32,7 @@ const SimCard = sequelize.define('SimCard', {
   },
 }, {
   tableName: 'sim_cards',
-  timestamps: true,
+  timestamps: false,
 });
 
 module.exports = SimCard;

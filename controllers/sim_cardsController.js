@@ -6,7 +6,13 @@ function isValidIPv4(ip) {
 
 exports.getAll = async (req, res) => {
   try {
-    const simCards = await SimCard.findAll({ include: Package });
+    const simCards = await SimCard.findAll({ 
+      include: [{
+        model: Package,
+        attributes: { exclude: ['createdAt', 'updatedAt'] }
+      }],
+      attributes: { exclude: ['createdAt', 'updatedAt'] }
+    });
     res.json(simCards);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -15,7 +21,13 @@ exports.getAll = async (req, res) => {
 
 exports.getById = async (req, res) => {
   try {
-    const simCard = await SimCard.findByPk(req.params.id, { include: Package });
+    const simCard = await SimCard.findByPk(req.params.id, { 
+      include: [{
+        model: Package,
+        attributes: { exclude: ['createdAt', 'updatedAt'] }
+      }],
+      attributes: { exclude: ['createdAt', 'updatedAt'] }
+    });
     if (!simCard) return res.status(404).json({ error: 'Sim card not found' });
     res.json(simCard);
   } catch (err) {
@@ -26,7 +38,6 @@ exports.getById = async (req, res) => {
 exports.create = async (req, res) => {
   try {
     const { phone_number, ip_address } = req.body;
-    // Telefon numarası validasyonu
     if (!phone_number || !/^05\d{8}$/.test(phone_number)) {
       return res.status(400).json({ error: 'Telefon numarası 10 haneli ve 05 ile başlamalıdır.' });
     }
@@ -68,6 +79,3 @@ exports.remove = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
-
-
