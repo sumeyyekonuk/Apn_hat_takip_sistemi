@@ -5,12 +5,14 @@ function SimCards() {
   const [simCards, setSimCards] = useState([]);
 
   useEffect(() => {
-    getSimCards().then(setSimCards);
+    getSimCards('stok')
+      .then(setSimCards)
+      .catch(err => console.error("Sim kartlar çekilirken hata:", err));
   }, []);
 
   return (
     <div>
-      <h2>Hatlar</h2>
+      <h2>Hatlar (Stokta Olanlar)</h2>
       <table>
         <thead>
           <tr>
@@ -25,9 +27,9 @@ function SimCards() {
             <tr key={card.id}>
               <td>{card.phone_number}</td>
               <td>{card.status}</td>
-              <td>{card.package_id}</td>
+              <td>{card.Package ? card.Package.name : '-'}</td>
               <td>
-                {/* Detay, düzenle, sil butonları ekleyebilirsiniz */}
+                {/* Buraya detay, düzenle, sil butonları ekleyebilirsiniz */}
               </td>
             </tr>
           ))}
