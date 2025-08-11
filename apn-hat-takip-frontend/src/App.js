@@ -9,6 +9,13 @@ import HatYonetim from "./pages/HatYonetim";
 import HatTahsisForm from "./pages/HatTahsisForm";
 import Login from "./pages/Login";
 
+
+// iade deneme
+import ReturnedSimCards from "./pages/ReturnedSimCards";
+
+
+
+
 // PrivateRoute bileşeni: token varsa çocuk bileşeni göster, yoksa login sayfasına yönlendir
 function PrivateRoute({ children }) {
   const token = localStorage.getItem("token");
@@ -27,6 +34,8 @@ function App() {
           <Link className="nav-link" to="/customers">Müşteriler</Link>
           <Link className="nav-link" to="/hat-yonetim">Hat Yönetim</Link>
           <Link className="nav-link" to="/hat-tahsisi">Hat Tahsisi</Link>
+          <Link className="nav-link" to="/returned-simcards">İade Edilen Hatlar</Link>
+
         </div>
       </nav>
 
@@ -62,12 +71,18 @@ function App() {
             </PrivateRoute>
           } />
 
-          {/* Tanımlanmayan sayfalar için otomatik yönlendirme */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+
+//iade deneme
+
+<Route path="/returned-simcards" element={
+  <PrivateRoute>
+    <ReturnedSimCards />
+  </PrivateRoute>
+} />
         </Routes>
       </div>
     </BrowserRouter>
-  );
-}
-
-export default App;
+    );
+  }
+  
+  export default App;
