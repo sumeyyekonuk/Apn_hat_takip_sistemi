@@ -13,7 +13,8 @@ const Operator = sequelize.define('Operator', {
   }
 }, {
   tableName: 'operators',
-  timestamps: false,
-});
+  timestamps: true,  // burada değiştiriyoruz
+})
+
 
 module.exports = Operator;

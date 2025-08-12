@@ -1,8 +1,10 @@
+// Raporlama için çeşitli verileri veritabanından çeken controller fonksiyonları
+
 const { SimCard, Allocation, Customer } = require('../models');
 const sequelize = require('sequelize');
 const { Op } = require('sequelize');
 
-// Aktif hat sayısı
+// 1. Aktif durumda olan sim kartların sayısını döner
 exports.activeSimCardCount = async (req, res) => {
   try {
     const count = await SimCard.count({ where: { status: 'aktif' } });
@@ -12,7 +14,7 @@ exports.activeSimCardCount = async (req, res) => {
   }
 };
 
-// Operatör bazlı hat dağılımı
+// 2. Operatörlere göre sim kartların sayısını gruplayarak döner
 exports.operatorDistribution = async (req, res) => {
   try {
     const data = await SimCard.findAll({
@@ -25,7 +27,7 @@ exports.operatorDistribution = async (req, res) => {
   }
 };
 
-// Müşteri bazlı tahsis edilen hatlar
+// 3. Müşterilere tahsis edilmiş sim kartların listesini, müşteri şirket adıyla birlikte döner
 exports.customerAllocations = async (req, res) => {
   try {
     const data = await Allocation.findAll({
@@ -37,14 +39,14 @@ exports.customerAllocations = async (req, res) => {
   }
 };
 
-// Tarih aralığına göre tahsis sorgulama
+// 4. Belirtilen tarih aralığında yapılmış tahsisatları döner
 exports.allocationsByDate = async (req, res) => {
   try {
-    const { start, end } = req.query;
+    const { start, end } = req.query;  // Tarih aralığı query parametre olarak alınır
     const data = await Allocation.findAll({
       where: {
         allocation_date: {
-          [Op.between]: [start, end]
+          [Op.between]: [start, end]  // Tarih aralığında filtreleme
         }
       }
     });

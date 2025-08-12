@@ -1,3 +1,5 @@
+//Bu dosya Swagger için API dokümantasyonunu otomatik oluşturmak amacıyla yapılandırma sağlar. 
+//Böylece /api-docs gibi bir URL'den API'nizin nasıl kullanıldığı görsel olarak takip edilebilir
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 

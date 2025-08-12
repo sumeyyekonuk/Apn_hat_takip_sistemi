@@ -1,4 +1,8 @@
 // models/index.js
+// Tüm modeller burada toplanıyor ve aralarındaki ilişkiler tanımlanıyor.
+// Böylece modeller diğer dosyalarda kolayca kullanılabiliyor.
+// hasMany ve belongsTo ile tablolar arasındaki bire çok ilişkiler kuruluyor.
+
 const Operator = require('./operator');
 const Package = require('./packages');
 const SimCard = require('./sim_cards');

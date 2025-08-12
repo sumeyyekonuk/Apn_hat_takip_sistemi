@@ -1,6 +1,6 @@
-const express = require('express');
-const router = express.Router();
-const simCardsController = require('../controllers/sim_cardsController');
+const express = require('express'); //express çağırıldı.
+const router = express.Router(); //yeni router oluştu
+const simCardsController = require('../controllers/sim_cardsController'); //controller dosyası çağrıldı.
 
 /**
  * @swagger
@@ -19,7 +19,7 @@ const simCardsController = require('../controllers/sim_cardsController');
  *       200:
  *         description: Başarılı
  */
-router.get('/', simCardsController.getAll);
+router.get('/', simCardsController.getAll); //get isteği
 
 /**
  * @swagger
@@ -65,7 +65,7 @@ router.get('/:id', simCardsController.getById);
  *       400:
  *         description: Hatalı istek
  */
-router.post('/', simCardsController.create);
+router.post('/', simCardsController.create); //post isteği
 
 /**
  * @swagger
@@ -97,7 +97,7 @@ router.post('/', simCardsController.create);
  *       404:
  *         description: Bulunamadı
  */
-router.put('/:id', simCardsController.update);
+router.put('/:id', simCardsController.update); //put isteği
 
 /**
  * @swagger
@@ -116,6 +116,19 @@ router.put('/:id', simCardsController.update);
  *       404:
  *         description: Bulunamadı
  */
-router.delete('/:id', simCardsController.remove);
+router.delete('/:id', simCardsController.remove); //delete isteği
 
 module.exports = router;
+
+/**
+ * @swagger yorumları, API'nin dokümantasyonunu otomatik oluşturmak için kullanılır.
+ * Bu yorumlar, endpointlerin URL'leri, hangi HTTP metodunu kullandığı,
+ * parametreleri, isteğe verilen cevapları ve açıklamalarını belirtir.
+ * Swagger UI gibi araçlar bu yorumları okuyarak, geliştiricilerin API'yi kolayca anlamasını sağlar.
+ */
+
+
+
+// API Endpoint: Uygulamanın veri alma, ekleme, güncelleme veya silme işlemleri için kullanılan URL yollarıdır.
+// Her endpoint, belirli bir HTTP metoduyla (GET, POST, PUT, DELETE) kullanılır.
+// Örnek: GET /api/sim-cards → Tüm sim kartları getirir.
