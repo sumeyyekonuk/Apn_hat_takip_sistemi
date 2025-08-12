@@ -66,21 +66,30 @@ exports.remove = async (req, res) => {
   }
 };
 
-//iade deneme
-
+// İade alınan hatları listele (düzenlendi)
 exports.getReturns = async (req, res) => {
   try {
     const returnedAllocations = await Allocation.findAll({
       where: { status: 'iade' },
-      include: [SimCard, Customer],
+      include: [
+        {
+          model: SimCard,
+          attributes: ['phone_number'],
+        },
+        {
+          model: Customer,
+          attributes: ['company_name'],
+        },
+      ],
     });
-    console.log('Returned Allocations:', returnedAllocations);  // Sonucu kontrol et
+
     if (!returnedAllocations || returnedAllocations.length === 0) {
-      return res.status(404).json({ error: 'Not found' });
+      return res.status(404).json({ error: 'İade alınan hat bulunamadı.' });
     }
+
     res.json(returnedAllocations);
   } catch (err) {
     console.error('getReturns allocation error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'İade alınan hatlar çekilemedi.' });
   }
 };

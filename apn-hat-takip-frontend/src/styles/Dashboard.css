@@ -1,0 +1,145 @@
+.dashboard-container {
+  background-color: #ffffff;
+  padding: 15px 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+  color: #1e293b;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* Başlık küçültüldü, ev ikonu eklendi */
+.dashboard-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  color: #1e293b;
+}
+
+.home-icon {
+  font-size: 1.3rem;
+  color: #3b82f6; /* mavimsi renk */
+}
+
+/* Özet kartlar */
+
+.dashboard-cards-row {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
+}
+
+.dashboard-card {
+  flex: 1 1 160px;
+  padding: 15px 18px;
+  border-radius: 8px;
+  color: #1e293b;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
+  font-weight: 600;
+  min-width: 140px;
+  text-align: center;
+}
+
+/* Daha resmi pastel tonlar */
+.bg-toplam {
+  background-color: #dbeafe; /* açık mavi */
+}
+.bg-aktif {
+  background-color: #d1fae5; /* açık yeşil */
+}
+.bg-stok {
+  background-color: #fef3c7; /* açık sarı */
+}
+.bg-iade {
+  background-color: #fee2e2; /* açık kırmızı */
+}
+.bg-tahsis {
+  background-color: #ede9fe; /* açık mor */
+}
+
+/* Grafik bölümü */
+.dashboard-graphs {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-bottom: 40px;
+}
+
+.graph-section {
+  flex: 1 1 300px;
+  min-width: 280px;
+  max-width: 400px;
+  height: 280px;
+  display: flex;
+  flex-direction: column;
+}
+
+.graph-section h4 {
+  margin-bottom: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* Tablo alanları */
+.recent-actions {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.table-container {
+  flex: 1 1 420px;
+  min-width: 350px;
+  max-width: 600px;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  padding: 15px 20px;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.05);
+}
+
+.table-container h5 {
+  margin-bottom: 10px;
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 1.1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+thead tr {
+  background-color: #e0e7ff;
+}
+
+thead th {
+  padding: 8px 12px;
+  text-align: left;
+  color: #1e293b;
+  font-weight: 600;
+  border-bottom: 1px solid #cbd5e1;
+}
+
+tbody td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+/* Yükleniyor spinner */
+.spinner {
+  font-size: 14px;
+  color: #64748b;
+  padding: 30px;
+  text-align: center;
+}

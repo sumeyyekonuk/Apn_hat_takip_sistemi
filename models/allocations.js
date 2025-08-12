@@ -36,4 +36,10 @@ const Allocation = sequelize.define('Allocation', {
   timestamps: true,
 });
 
+// İlişkileri tanımla
+Allocation.associate = (models) => {
+  Allocation.belongsTo(models.SimCard, { foreignKey: 'sim_card_id' });
+  Allocation.belongsTo(models.Customer, { foreignKey: 'customer_id' });
+};
+
 module.exports = Allocation;

@@ -1,0 +1,82 @@
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: 220px;
+  background-color: #121212; /* Siyahın biraz açılmış, göz yormayan tonu */
+  color: #e0e0e0; /* Açık gri yazı */
+  padding: 25px 20px;
+  box-sizing: border-box;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.8);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+}
+
+.sidebar h3 {
+  margin-bottom: 30px;
+  font-weight: 700;
+  font-size: 1.8rem;
+  color: #f5f5f5;
+  text-align: center;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding-left: 0;
+  flex-grow: 1;
+}
+
+.sidebar ul li {
+  margin-bottom: 18px;
+}
+
+.sidebar ul li a {
+  display: block;
+  padding: 12px 15px;
+  color: #cfcfcf;
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.sidebar ul li a:hover {
+  background-color: #333333; /* Hoverda koyu gri arka plan */
+  color: #ffffff;
+}
+
+.sidebar ul li a.active {
+  background-color: #1e88e5; /* Canlı mavi vurgu */
+  color: white;
+  font-weight: 700;
+  box-shadow: inset 4px 0 0 #1565c0; /* Sol mavi çubuk */
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+    padding: 15px 10px;
+    flex-direction: row;
+    justify-content: space-around;
+  }
+  .sidebar h3 {
+    display: none;
+  }
+  .sidebar ul {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+  }
+  .sidebar ul li {
+    margin-bottom: 0;
+  }
+  .sidebar ul li a {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+}

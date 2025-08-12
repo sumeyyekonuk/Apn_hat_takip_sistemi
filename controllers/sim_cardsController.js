@@ -1,6 +1,6 @@
-// Modelleri içe aktar (SimCard, Package ve Operator)
+// Modelleri içe aktar (SimCard, Package, Operator, Allocation, Customer)
 // Bu modeller veritabanı tablolarını temsil ediyor ve ilişkili işlemler için kullanılıyor
-const { SimCard, Package, Operator } = require('../models');
+const { SimCard, Package, Operator, Allocation, Customer } = require('../models');
 
 // IPv4 adresinin geçerli olup olmadığını kontrol eden fonksiyon
 //// IP adresi "x.x.x.x" formatında, her x 0-255 arasında sayıdır.
@@ -21,24 +21,32 @@ async function getAll(req, res) {
     // Query parametresi ile status filtreleme yapılıyor, yoksa tüm kayıtlar çekiliyor
     const statusFilter = req.query.status ? { status: req.query.status } : {};
 
-    // SimCard kayıtlarını buluyoruz, ilişkili Package ve Operator bilgileri de dahil
+    // SimCard kayıtlarını buluyoruz, ilişkili Package, Operator, Allocation ve Customer bilgileri de dahil
     const simCards = await SimCard.findAll({ 
       where: statusFilter,
-      include: [{
-        model: Package,
-        attributes: { exclude: ['createdAt', 'updatedAt'] },  // Tarih alanlarını hariç tut
-        include: [{
-          model: Operator,
-          attributes: ['id', 'name']  // Operatörün sadece id ve adı gösterilir
-        }]
-      }],
-      attributes: { exclude: ['createdAt', 'updatedAt'] } // SimCard tablosunun tarih alanları hariç
+      include: [
+        {
+          model: Package,
+          attributes: { exclude: ['createdAt', 'updatedAt'] },
+          include: [{
+            model: Operator,
+            attributes: ['id', 'name']
+          }]
+        },
+        {
+          model: Allocation,
+          attributes: ['id', 'allocation_date', 'status', 'customer_id'],
+          include: [{
+            model: Customer,
+            attributes: ['id', 'company_name', 'contact_person', 'phone']
+          }]
+        }
+      ],
+      attributes: { exclude: ['createdAt', 'updatedAt'] }
     });
 
-    // Sonuçları JSON olarak gönderiyoruz
     res.json(simCards);
   } catch (err) {
-    // Hata varsa 500 hatası ve mesaj gönderilir
     res.status(500).json({ error: err.message });
   }
 }
@@ -46,21 +54,30 @@ async function getAll(req, res) {
 // Tek bir sim kartı ID ile getiren fonksiyon (GET /api/sim-cards/:id)
 async function getById(req, res) {
   try {
-    // ID'ye göre sim kartı ve ilişkili Package-Operator verisini çekiyoruz
     const simCard = await SimCard.findByPk(req.params.id, { 
-      include: [{
-        model: Package,
-        attributes: { exclude: ['createdAt', 'updatedAt'] },
-        include: [{
-          model: Operator,
-          attributes: ['id', 'name']
-        }]
-      }],
+      include: [
+        {
+          model: Package,
+          attributes: { exclude: ['createdAt', 'updatedAt'] },
+          include: [{
+            model: Operator,
+            attributes: ['id', 'name']
+          }]
+        },
+        {
+          model: Allocation,
+          attributes: ['id', 'allocation_date', 'status', 'customer_id'],
+          include: [{
+            model: Customer,
+            attributes: ['id', 'company_name', 'contact_person', 'phone']
+          }]
+        }
+      ],
       attributes: { exclude: ['createdAt', 'updatedAt'] }
     });
 
     if (!simCard) 
-      return res.status(404).json({ error: 'Sim kart bulunamadı' }); // Kayıt yoksa 404 döner
+      return res.status(404).json({ error: 'Sim kart bulunamadı' });
 
     res.json(simCard);
   } catch (err) {
@@ -73,7 +90,7 @@ async function create(req, res) {
   try {
     const { phone_number, ip_address, status } = req.body;
 
-    // Telefon numarası 10 haneli ve 05 ile başlamalı diye validasyon
+    // Telefon numarası validasyonu
     if (!phone_number || !/^05\d{8}$/.test(phone_number)) {
       return res.status(400).json({ error: 'Telefon numarası 10 haneli ve 05 ile başlamalıdır.' });
     }
@@ -83,16 +100,14 @@ async function create(req, res) {
       return res.status(400).json({ error: 'Geçerli bir IPv4 adresi giriniz.' });
     }
 
-    // Yeni sim kart oluştur, status yoksa 'stok' olarak ata
+    // Yeni sim kart oluştur
     const newSimCard = await SimCard.create({
       ...req.body,
       status: status || 'stok',
     });
 
-    // Başarılı ekleme durumunda 201 ve yeni kaydı gönder
     res.status(201).json(newSimCard);
   } catch (err) {
-    // Hatalı isteklerde 400 döner
     res.status(400).json({ error: err.message });
   }
 }
@@ -102,24 +117,19 @@ async function update(req, res) {
   try {
     const { phone_number, ip_address } = req.body;
 
-    // Telefon numarası varsa format kontrolü
     if (phone_number && !/^05\d{8}$/.test(phone_number)) {
       return res.status(400).json({ error: 'Telefon numarası 10 haneli ve 05 ile başlamalıdır.' });
     }
 
-    // IP adresi varsa format kontrolü
     if (ip_address && !isValidIPv4(ip_address)) {
       return res.status(400).json({ error: 'Geçerli bir IPv4 adresi giriniz.' });
     }
 
-    // Güncellenecek sim kartı bul
     const simCard = await SimCard.findByPk(req.params.id);
     if (!simCard) return res.status(404).json({ error: 'Sim kart bulunamadı' });
 
-    // Güncelle
     await simCard.update(req.body);
 
-    // Güncellenmiş kaydı gönder
     res.json(simCard);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -132,17 +142,14 @@ async function remove(req, res) {
     const simCard = await SimCard.findByPk(req.params.id);
     if (!simCard) return res.status(404).json({ error: 'Sim kart bulunamadı' });
 
-    // Sil
     await simCard.destroy();
 
-    // Başarı mesajı dön
     res.json({ message: 'Sim kart silindi' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 }
 
-// Fonksiyonları dışarı aktar
 module.exports = {
   getAll,
   getById,

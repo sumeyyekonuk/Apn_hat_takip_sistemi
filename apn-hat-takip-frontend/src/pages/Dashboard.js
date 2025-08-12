@@ -1,91 +1,303 @@
 import React, { useEffect, useState } from "react";
-// API’den sim kart ve tahsis verilerini çekmek için fonksiyonlar
-import { getSimCards, getAllocations } from "../services/api";
+import { Pie, Line, Bar } from "react-chartjs-2";
+import {
+  Chart,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+} from "chart.js";
 
-// ReturnedSimCards bileşeni importunu kaldırdım çünkü kullanılmayacak
+import {
+  getSimCards,
+  getAllocations,
+  getOperatorDistribution,
+} from "../services/api";
+
+import "../styles/Dashboard.css";
+
+Chart.register(
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement
+);
 
 function Dashboard() {
-  // State’ler - backend’den gelen veriler burada saklanacak
   const [simCards, setSimCards] = useState([]);
   const [allocations, setAllocations] = useState([]);
+  const [returnedSimCards, setReturnedSimCards] = useState([]);
 
-  // Component mount olunca verileri çek
+  const [loadingAllocations, setLoadingAllocations] = useState(true);
+  const [loadingReturns, setLoadingReturns] = useState(true);
+
+  const [operatorDistributionData, setOperatorDistributionData] = useState(null);
+  const [monthlyAllocationTrendData, setMonthlyAllocationTrendData] = useState(null);
+
+  const [packageTypeDistributionData, setPackageTypeDistributionData] = useState(null);
+
   useEffect(() => {
-    getSimCards().then(setSimCards).catch(console.error);
-    getAllocations().then(setAllocations).catch(console.error);
+    // Toplam sim kart verisi
+    getSimCards()
+      .then((data) => {
+        setSimCards(data);
+
+        // Paket tipi dağılımı (sim kartlardan)
+        const packageCounts = {};
+        data.forEach((card) => {
+          const packageName = card.package?.name || "Bilinmeyen";
+          packageCounts[packageName] = (packageCounts[packageName] || 0) + 1;
+        });
+
+        setPackageTypeDistributionData({
+          labels: Object.keys(packageCounts),
+          datasets: [
+            {
+              label: "Paket Tipi Dağılımı",
+              data: Object.values(packageCounts),
+              backgroundColor: "rgba(75, 192, 192, 0.6)",
+            },
+          ],
+        });
+      })
+      .catch(console.error);
+
+    // Operatör bazlı dağılım API çağrısı
+    getOperatorDistribution()
+      .then((data) => {
+        const labels = data.map((item) => item.operator || "Bilinmeyen");
+        const counts = data.map((item) => item.count);
+
+        setOperatorDistributionData({
+          labels,
+          datasets: [
+            {
+              label: "Operatör Bazlı Hat Sayısı",
+              data: counts,
+              backgroundColor: [
+                "#FF6384",
+                "#36A2EB",
+                "#FFCE56",
+                "#4BC0C0",
+                "#9966FF",
+                "#FF9F40",
+              ],
+              hoverOffset: 30,
+            },
+          ],
+        });
+      })
+      .catch(console.error);
+
+    // Son tahsisler (allocations) ve aylık tahsis trendi
+    getAllocations()
+      .then((data) => {
+        setAllocations(data);
+
+        const monthLabels = [];
+        const monthData = [];
+        const today = new Date();
+
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+          const label = d.toLocaleString("default", { month: "short", year: "numeric" });
+          monthLabels.push(label);
+
+          const count = data.filter((a) => {
+            const date = new Date(a.allocation_date);
+            return date.getMonth() === d.getMonth() && date.getFullYear() === d.getFullYear();
+          }).length;
+
+          monthData.push(count);
+        }
+
+        setMonthlyAllocationTrendData({
+          labels: monthLabels,
+          datasets: [
+            {
+              label: "Aylık Tahsis Trendi",
+              data: monthData,
+              fill: false,
+              borderColor: "rgba(75,192,192,1)",
+              tension: 0.3,
+            },
+          ],
+        });
+
+        setLoadingAllocations(false);
+      })
+      .catch(console.error);
+
+    // İade edilen sim kartlar
+    getSimCards("iade")
+      .then((data) => {
+        setReturnedSimCards(data);
+        setLoadingReturns(false);
+      })
+      .catch(console.error);
   }, []);
 
-  // Aktif ve stokta bekleyen hat sayısını hesapla
-  const aktifHat = simCards.filter(card => card.status === "aktif").length;
-  const stokHat = simCards.filter(card => card.status === "stok").length;
-  const iadeHat = simCards.filter(card => card.status === "iade").length;  // EKLENDİ
+  const aktifHat = simCards.filter((card) => card.status === "aktif").length;
+  const stokHat = simCards.filter((card) => card.status === "stok").length;
+  const iadeHat = returnedSimCards.length;
 
-  // Bu ay tahsis edilen hatların sayısı
   const thisMonth = new Date().getMonth();
   const thisYear = new Date().getFullYear();
-  const thisMonthAllocations = allocations.filter(allocation => {
+  const thisMonthAllocations = allocations.filter((allocation) => {
     const date = new Date(allocation.allocation_date);
     return date.getMonth() === thisMonth && date.getFullYear() === thisYear;
   });
 
+  const recentAllocations = loadingAllocations ? [] : allocations.slice(-5).reverse();
+  const recentReturns = loadingReturns ? [] : returnedSimCards.slice(-5).reverse();
+
   return (
-    <div className="container mt-4">
-      <h1>Dashboard</h1>
+    <div className="dashboard-container">
+      <h2 className="dashboard-title">
+        <span className="home-icon" role="img" aria-label="home">🏠</span>
+        APN Hat Takip Dashboard
+      </h2>
 
-      {/* Özet Kartlar */}
-      <div className="row">
-        {/* Toplam Hat */}
-        <div className="col-md-3 mb-3">
-          <div className="card text-white bg-primary">
-            <div className="card-body">
-              <h5 className="card-title">Toplam Hat</h5>
-              <p className="card-text fs-3">{simCards.length}</p>
-            </div>
-          </div>
+      <div className="dashboard-cards-row">
+        <div className="dashboard-card bg-toplam">
+          <h5>Toplam Hat</h5>
+          <p className="card-text">{simCards.length}</p>
         </div>
 
-        {/* Aktif Hatlar */}
-        <div className="col-md-3 mb-3">
-          <div className="card text-white bg-success">
-            <div className="card-body">
-              <h5 className="card-title">Aktif Hatlar</h5>
-              <p className="card-text fs-3">{aktifHat}</p>
-            </div>
-          </div>
+        <div className="dashboard-card bg-aktif">
+          <h5>Aktif Hatlar</h5>
+          <p className="card-text">{aktifHat}</p>
         </div>
 
-        {/* Stokta Bekleyen Hatlar */}
-        <div className="col-md-3 mb-3">
-          <div className="card text-white bg-warning">
-            <div className="card-body">
-              <h5 className="card-title">Stokta Bekleyen Hatlar</h5>
-              <p className="card-text fs-3">{stokHat}</p>
-            </div>
-          </div>
+        <div className="dashboard-card bg-stok">
+          <h5>Stokta Bekleyen Hatlar</h5>
+          <p className="card-text">{stokHat}</p>
         </div>
 
-        {/* İade Alınan Hatlar - YENİ KART */}
-        <div className="col-md-3 mb-3">
-          <div className="card text-white bg-danger">
-            <div className="card-body">
-              <h5 className="card-title">İade Alınan Hatlar</h5>
-              <p className="card-text fs-3">{iadeHat}</p>
-            </div>
-          </div>
+        <div className="dashboard-card bg-iade">
+          <h5>İade Alınan Hatlar</h5>
+          <p className="card-text">{iadeHat}</p>
         </div>
 
-        {/* Bu Ay Tahsis Edilenler */}
-        <div className="col-md-3 mb-3">
-          <div className="card text-white bg-info">
-            <div className="card-body">
-              <h5 className="card-title">Bu Ay Tahsis Edilenler</h5>
-              <p className="card-text fs-3">{thisMonthAllocations.length}</p>
-            </div>
-          </div>
+        <div className="dashboard-card bg-tahsis">
+          <h5>Bu Ay Tahsis Edilenler</h5>
+          <p className="card-text">{thisMonthAllocations.length}</p>
         </div>
       </div>
 
-      {/* ReturnedSimCards bileşeni kaldırıldı, detay liste görünmüyor */}
+      <div className="dashboard-graphs">
+        <section className="graph-section">
+          <h4>Operatör Bazlı Dağılım (Pasta Grafik)</h4>
+          {operatorDistributionData ? (
+            <Pie
+              data={operatorDistributionData}
+              options={{ maintainAspectRatio: false }}
+              height={250}
+              width={250}
+            />
+          ) : (
+            <div>Yükleniyor...</div>
+          )}
+        </section>
+
+        <section className="graph-section">
+          <h4>Aylık Tahsis Trendi (Çizgi Grafik)</h4>
+          {monthlyAllocationTrendData ? (
+            <Line
+              data={monthlyAllocationTrendData}
+              options={{ maintainAspectRatio: false }}
+              height={250}
+              width={400}
+            />
+          ) : (
+            <div>Yükleniyor...</div>
+          )}
+        </section>
+
+        <section className="graph-section">
+          <h4>Paket Tipi Dağılımı (Bar Grafik)</h4>
+          {packageTypeDistributionData ? (
+            <Bar
+              data={packageTypeDistributionData}
+              options={{ maintainAspectRatio: false }}
+              height={250}
+              width={400}
+            />
+          ) : (
+            <div>Yükleniyor...</div>
+          )}
+        </section>
+      </div>
+
+      <div className="recent-actions">
+        <div className="table-container">
+          <h5>Son Tahsisler</h5>
+          {loadingAllocations ? (
+            <div className="spinner">Yükleniyor...</div>
+          ) : recentAllocations.length > 0 ? (
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Müşteri</th>
+                  <th>Hat Numarası</th>
+                  <th>Tahsis Tarihi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentAllocations.map((a) => (
+                  <tr key={a.id}>
+                    <td>{a.id}</td>
+                    <td>{a.Customer?.company_name || "Belirtilmemiş"}</td>
+                    <td>{a.SimCard?.phone_number || "Belirtilmemiş"}</td>
+                    <td>{new Date(a.allocation_date).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>Gösterilecek tahsis işlemi yok.</p>
+          )}
+        </div>
+
+        <div className="table-container">
+          <h5>Son İadeler</h5>
+          {loadingReturns ? (
+            <div className="spinner">Yükleniyor...</div>
+          ) : recentReturns.length > 0 ? (
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Müşteri</th>
+                  <th>Hat Numarası</th>
+                  <th>İade Tarihi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentReturns.map((r) => (
+                  <tr key={r.id}>
+                    <td>{r.id}</td>
+                    <td>{r.Allocations?.[0]?.Customer?.company_name || "Belirtilmemiş"}</td>
+                    <td>{r.phone_number || "Belirtilmemiş"}</td>
+                    <td>{new Date(r.Allocations?.[0]?.allocation_date || r.purchase_date).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>Gösterilecek iade işlemi yok.</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

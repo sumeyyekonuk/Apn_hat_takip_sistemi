@@ -20,7 +20,7 @@ function HatTahsisForm() {
   useEffect(() => {
     // Müşteriler ve stoktaki hatları çek
     getCustomers().then(setCustomers).catch(console.error);
-    getSimCards({ status: 'stok' }).then(setSimCards).catch(console.error);
+    getSimCards("stok").then(setSimCards).catch(console.error);  // Burada parametre string olmalı
   }, []);
 
   const handleChange = e => {
