@@ -25,7 +25,6 @@
 }
 
 /* Özet kartlar */
-
 .dashboard-cards-row {
   display: flex;
   gap: 15px;
@@ -42,6 +41,19 @@
   font-weight: 600;
   min-width: 140px;
   text-align: center;
+}
+
+/* Kart içindeki sayısal veriler */
+.dashboard-card .stat-number {
+  font-size: 2rem;      /* Daha büyük boyut */
+  font-weight: 700;     /* Kalın */
+  color: #1e293b;       /* Yüksek kontrast */
+  margin-bottom: 4px;
+}
+
+.dashboard-card .stat-label {
+  font-size: 0.95rem;
+  color: #64748b;       /* Açık gri yazı */
 }
 
 /* Daha resmi pastel tonlar */

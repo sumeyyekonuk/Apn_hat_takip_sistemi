@@ -63,7 +63,7 @@ function Dashboard() {
               label: "Paket Tipi Dağılımı",
               data: Object.values(packageCounts),
               backgroundColor: Object.keys(packageCounts).map(
-                (_, i) => `hsl(${(i * 60) % 360}, 70%, 75%)` // Açık pastel renkler
+                (_, i) => `hsl(${(i * 60) % 360}, 70%, 75%)`
               ),
               borderColor: Object.keys(packageCounts).map(
                 (_, i) => `hsl(${(i * 60) % 360}, 70%, 65%)`
@@ -174,28 +174,28 @@ function Dashboard() {
 
       <div className="dashboard-cards-row">
         <div className="dashboard-card bg-toplam">
-          <h5>Toplam Hat</h5>
-          <p className="card-text">{simCards.length}</p>
+          <div className="stat-number">{simCards.length}</div>
+          <div className="stat-label">Toplam Hat</div>
         </div>
 
         <div className="dashboard-card bg-aktif">
-          <h5>Aktif Hatlar</h5>
-          <p className="card-text">{aktifHat}</p>
+          <div className="stat-number">{aktifHat}</div>
+          <div className="stat-label">Aktif Hatlar</div>
         </div>
 
         <div className="dashboard-card bg-stok">
-          <h5>Stokta Bekleyen Hatlar</h5>
-          <p className="card-text">{stokHat}</p>
+          <div className="stat-number">{stokHat}</div>
+          <div className="stat-label">Stokta Bekleyen Hatlar</div>
         </div>
 
         <div className="dashboard-card bg-iade">
-          <h5>İade Alınan Hatlar</h5>
-          <p className="card-text">{iadeHat}</p>
+          <div className="stat-number">{iadeHat}</div>
+          <div className="stat-label">İade Alınan Hatlar</div>
         </div>
 
         <div className="dashboard-card bg-tahsis">
-          <h5>Bu Ay Tahsis Edilenler</h5>
-          <p className="card-text">{thisMonthAllocations.length}</p>
+          <div className="stat-number">{thisMonthAllocations.length}</div>
+          <div className="stat-label">Bu Ay Tahsis Edilenler</div>
         </div>
       </div>
 
