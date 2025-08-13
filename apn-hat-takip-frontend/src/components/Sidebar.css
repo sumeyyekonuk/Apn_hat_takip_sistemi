@@ -55,6 +55,32 @@
   box-shadow: inset 4px 0 0 #1565c0; /* Sol mavi çubuk */
 }
 
+.logout-btn {
+  display: block;
+  padding: 12px 15px;
+  color: #cfcfcf;
+  background: none;
+  border: none;
+  text-align: left;
+  font-weight: 600;
+  width: 100%;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.logout-btn:hover {
+  background-color: #333333;
+  color: #ffffff;
+}
+
+.logout-btn.active {
+  background-color: #1e88e5;
+  color: white;
+  font-weight: 700;
+  box-shadow: inset 4px 0 0 #1565c0;
+}
+
 @media (max-width: 768px) {
   .sidebar {
     position: relative;
@@ -64,18 +90,27 @@
     flex-direction: row;
     justify-content: space-around;
   }
+
   .sidebar h3 {
     display: none;
   }
+
   .sidebar ul {
     display: flex;
     flex-direction: row;
     gap: 10px;
   }
+
   .sidebar ul li {
     margin-bottom: 0;
   }
+
   .sidebar ul li a {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+
+  .logout-btn {
     padding: 8px 12px;
     font-size: 0.9rem;
   }

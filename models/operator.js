@@ -1,7 +1,7 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const { DataTypes } = require('sequelize'); // sequelize kütüphanesinden veri tipleri alır
+const sequelize = require('../config/database'); //veritabanı bağlantı ayarları dosyası import edildi
 
-const Operator = sequelize.define('Operator', {
+const Operator = sequelize.define('Operator', { //Operator modeli tanımlandı sequelize bunu tablo ile eşletirir
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -13,8 +13,8 @@ const Operator = sequelize.define('Operator', {
   }
 }, {
   tableName: 'operators',
-  timestamps: true,  // burada değiştiriyoruz
+  timestamps: true,  
 })
 
 
-module.exports = Operator;
+module.exports = Operator; //diğer dosyalarda kullanmak için export edildi.

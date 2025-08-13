@@ -1,0 +1,66 @@
+.hat-tahsis-page {
+  /* fallback - not used directly, kept if needed */
+}
+
+/* top-level wrapper that fills viewport but DOES NOT change global body */
+.hat-tahsis-page,
+.hat-tahsis-page * {
+  box-sizing: border-box;
+}
+
+.hat-tahsis-page .hat-card {
+  /* not used; kept for reference */
+}
+
+/* main page wrapper (applied to .hat-tahsis-page root in component) */
+.hat-tahsis-page {
+  min-height: 100vh;
+}
+
+/* actual card that holds the form */
+.hat-card {
+  background-color: #000; /* siyah */
+  border: 3px solid #ADD8E6; /* açık mavi kenar */
+  border-radius: 12px;
+  padding: 24px;
+  color: #fff;
+  max-width: 1100px;
+  margin: 24px auto;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+}
+
+/* accent color for header */
+.accent-color {
+  color: #ADD8E6;
+}
+
+/* dark form controls */
+.dark-control {
+  background-color: #0b0b0b !important;
+  color: #fff !important;
+  border: 1px solid #ADD8E6 !important;
+}
+
+/* button style */
+.btn-accent {
+  background-color: #ADD8E6;
+  color: #000;
+  border-radius: 8px;
+  padding: 10px 14px;
+  border: none;
+}
+
+/* spinner area: center on black */
+.hat-tahsis-page .spinner-border {
+  width: 3rem;
+  height: 3rem;
+  color: #00bfff;
+}
+
+/* small responsive tweak */
+@media (max-width: 576px) {
+  .hat-card {
+    margin: 12px;
+    padding: 16px;
+  }
+}

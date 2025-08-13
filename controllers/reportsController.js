@@ -1,3 +1,4 @@
+// reportsController.js
 const { SimCard, Allocation, Customer, Package, Operator } = require('../models');
 const sequelize = require('sequelize');
 const { Op } = require('sequelize');
@@ -12,12 +13,12 @@ exports.activeSimCardCount = async (req, res) => {
   }
 };
 
-// 2. Operatörlere göre sim kartların sayısını gruplayarak döner
+// 2. Operatörlere göre sim kartların sayısını gruplayarak döner (SimCard → Package → Operator)
 exports.operatorDistribution = async (req, res) => {
   try {
     const data = await SimCard.findAll({
       attributes: [
-        'package.operator_id',
+        [sequelize.col('Package.Operator.name'), 'operatorName'],
         [sequelize.fn('COUNT', sequelize.col('SimCard.id')), 'count']
       ],
       include: [
@@ -27,20 +28,46 @@ exports.operatorDistribution = async (req, res) => {
           include: [
             {
               model: Operator,
-              attributes: ['name']
+              attributes: []
             }
           ]
         }
       ],
-      group: ['package.operator_id', 'package->Operator.id', 'package->Operator.name'],
-      raw: true,
-      nest: true
+      group: ['Package.Operator.name'],
+      raw: true
     });
 
-    // Sequelize raw sonucu operator isimlerine göre dönüştürme
     const result = data.map(item => ({
-      operatorId: item.package.operator_id,
-      operatorName: item.package.Operator.name,
+      operator: item.operatorName,
+      count: item.count
+    }));
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// 2b. Allocations tablosundan operatör dağılımını döner (allocations tablosuna operator_id eklendi)
+exports.operatorDistributionFromAllocations = async (req, res) => {
+  try {
+    const data = await Allocation.findAll({
+      attributes: [
+        [sequelize.col('Operator.name'), 'operatorName'],
+        [sequelize.fn('COUNT', sequelize.col('Allocation.id')), 'count']
+      ],
+      include: [
+        {
+          model: Operator,
+          attributes: []
+        }
+      ],
+      group: ['Operator.name'],
+      raw: true
+    });
+
+    const result = data.map(item => ({
+      operator: item.operatorName,
       count: item.count
     }));
 

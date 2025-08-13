@@ -37,12 +37,12 @@ router.get(
   reportsController.activeSimCardCount      // İstek geldiğinde çalışacak controller fonksiyonu
 );
 
-// 📌 2. Operatör bazlı hat dağılımı raporu
+// 📌 2. Operatör bazlı hat dağılımı raporu (SimCard → Package → Operator)
 /**
  * @swagger
  * /api/reports/operator-distribution:
  *   get:
- *     summary: Operatör bazlı hat dağılımı
+ *     summary: SimCard tablosu üzerinden operatör bazlı hat dağılımı
  *     tags: [Reports]
  *     responses:
  *       200:
@@ -52,6 +52,23 @@ router.get(
   '/operator-distribution',
   auth(['admin', 'user']),
   reportsController.operatorDistribution
+);
+
+// 📌 2b. Allocations tablosundan operatör bazlı dağılım
+/**
+ * @swagger
+ * /api/reports/operator-distribution-from-allocations:
+ *   get:
+ *     summary: Allocations tablosu üzerinden operatör bazlı hat dağılımı
+ *     tags: [Reports]
+ *     responses:
+ *       200:
+ *         description: Başarılı
+ */
+router.get(
+  '/operator-distribution-from-allocations',
+  auth(['admin', 'user']),
+  reportsController.operatorDistributionFromAllocations
 );
 
 // 📌 3. Müşteri bazlı tahsisat raporu
@@ -88,10 +105,20 @@ router.get(
   reportsController.allocationsByDate
 );
 
+// 🔹 Test endpoint: operatör dağılımını kontrol etmek için
+router.get('/operator-distribution-test', async (req, res) => {
+  try {
+    await reportsController.operatorDistributionFromAllocations(
+      { query: {} },
+      { json: (output) => res.json(output) }
+    );
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // 📌 Router'ı dışa aktarıyoruz ki app.js veya index.js gibi ana dosyada kullanılabilsin
 module.exports = router;
-
-
 
 // Bu dosya, raporlama ile ilgili API endpoint'lerini tanımlar. 
 // Her endpoint için ilgili controller fonksiyonunu ve yetki kontrolünü (auth middleware) belirtir. 

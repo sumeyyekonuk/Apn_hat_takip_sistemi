@@ -56,7 +56,6 @@ export async function login(credentials) {
 }
 
 // Yeni raporlama API fonksiyonları
-
 export async function getActiveSimCount() {
   const res = await fetch(`${API_URL}/reports/active-sim-count`);
   if (!res.ok) throw new Error("Failed to fetch active sim count");
@@ -66,6 +65,13 @@ export async function getActiveSimCount() {
 export async function getOperatorDistribution() {
   const res = await fetch(`${API_URL}/reports/operator-distribution`);
   if (!res.ok) throw new Error("Failed to fetch operator distribution");
+  return res.json();
+}
+
+// 🔹 Yeni: Allocations tablosundan operatör dağılımı
+export async function getOperatorDistributionFromAllocations() {
+  const res = await fetch(`${API_URL}/reports/operator-distribution-from-allocations`);
+  if (!res.ok) throw new Error("Failed to fetch operator distribution from allocations");
   return res.json();
 }
 

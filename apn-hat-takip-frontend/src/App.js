@@ -1,6 +1,6 @@
 import './App.css';
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 
 import Sidebar from "./components/Sidebar";
 
@@ -18,34 +18,40 @@ function PrivateRoute({ children }) {
   return token ? children : <Navigate to="/login" replace />;
 }
 
+function AppLayout({ children }) {
+  const location = useLocation();
+  const hideSidebar = location.pathname === "/login";
+
+  return (
+    <div className="d-flex">
+      {!hideSidebar && <Sidebar />}
+      <div style={{ marginLeft: hideSidebar ? 0 : 220, padding: "20px", width: "100%" }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
-      <Sidebar />
-      <div style={{ marginLeft: 220, padding: "20px" }}>
+      <AppLayout>
         <Routes>
+          {/* Login sayfası */}
           <Route path="/login" element={<Login />} />
 
-          <Route path="/" element={
-            <PrivateRoute><Dashboard /></PrivateRoute>
-          } />
-          <Route path="/sim-cards" element={
-            <PrivateRoute><SimCards /></PrivateRoute>
-          } />
-          <Route path="/customers" element={
-            <PrivateRoute><Customers /></PrivateRoute>
-          } />
-          <Route path="/hat-yonetim" element={
-            <PrivateRoute><HatYonetim /></PrivateRoute>
-          } />
-          <Route path="/hat-tahsisi" element={
-            <PrivateRoute><HatTahsisForm /></PrivateRoute>
-          } />
-          <Route path="/returned-simcards" element={
-            <PrivateRoute><ReturnedSimCards /></PrivateRoute>
-          } />
+          {/* PrivateRoute ile korunan sayfalar */}
+          <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+          <Route path="/sim-cards" element={<PrivateRoute><SimCards /></PrivateRoute>} />
+          <Route path="/customers" element={<PrivateRoute><Customers /></PrivateRoute>} />
+          <Route path="/hat-yonetim" element={<PrivateRoute><HatYonetim /></PrivateRoute>} />
+          <Route path="/hat-tahsisi" element={<PrivateRoute><HatTahsisForm /></PrivateRoute>} />
+          <Route path="/returned-simcards" element={<PrivateRoute><ReturnedSimCards /></PrivateRoute>} />
+
+          {/* Tanımlanmayan sayfalar için yönlendirme */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </div>
+      </AppLayout>
     </BrowserRouter>
   );
 }

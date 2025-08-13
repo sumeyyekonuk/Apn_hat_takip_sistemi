@@ -1,8 +1,16 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import "./Sidebar.css";
 
 function Sidebar() {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
   return (
     <div className="sidebar">
       <h3>APN Sistem</h3>
@@ -16,6 +24,11 @@ function Sidebar() {
           <li><NavLink to="/returned-simcards" className={({ isActive }) => isActive ? "active" : ""}>İade Edilen Hatlar</NavLink></li>
         </ul>
       </nav>
+
+      <hr />
+      <button onClick={handleLogout} className="logout-btn">
+        Çıkış Yap
+      </button>
     </div>
   );
 }
