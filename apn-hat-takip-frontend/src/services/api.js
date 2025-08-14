@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom";
+
 const API_URL = "http://localhost:5000/api";
 
 // --- Ortak Fonksiyonlar ---
@@ -15,6 +17,14 @@ async function handleResponse(res, defaultErrorMessage) {
     } catch {
       // JSON değilse varsayılan hata mesajı kullanılacak
     }
+
+    // 401 Unauthorized ise logout yap
+    if (res.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/login"; // login sayfasına yönlendir
+    }
+
     throw new Error(errorMessage);
   }
   return res.json();
@@ -88,6 +98,7 @@ export async function login(credentials) {
   });
   const data = await handleResponse(res, "Giriş başarısız");
   localStorage.setItem("token", data.token);
+  localStorage.setItem("user", JSON.stringify(data.user));
   return data;
 }
 
