@@ -1,33 +1,73 @@
 const API_URL = "http://localhost:5000/api";
 
+// --- Ortak Fonksiyonlar ---
 function getAuthHeader() {
   const token = localStorage.getItem("token");
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+async function handleResponse(res, defaultErrorMessage) {
+  if (!res.ok) {
+    let errorMessage = defaultErrorMessage;
+    try {
+      const errorData = await res.json();
+      errorMessage = errorData.error || errorMessage;
+    } catch {
+      // JSON değilse varsayılan hata mesajı kullanılacak
+    }
+    throw new Error(errorMessage);
+  }
+  return res.json();
+}
+
+// --- SIM Cards ---
 export async function getSimCards(status) {
   const url = status ? `${API_URL}/sim-cards?status=${status}` : `${API_URL}/sim-cards`;
   const res = await fetch(url, { headers: getAuthHeader() });
-  if (!res.ok) throw new Error("Failed to fetch sim cards");
-  return res.json();
+  return handleResponse(res, "SIM kartlar getirilemedi");
 }
 
+// --- Customers ---
 export async function getCustomers() {
   const res = await fetch(`${API_URL}/customers`, { headers: getAuthHeader() });
-  if (!res.ok) throw new Error("Failed to fetch customers");
-  return res.json();
+  return handleResponse(res, "Müşteriler getirilemedi");
 }
 
+export async function createCustomer(data) {
+  const res = await fetch(`${API_URL}/customers`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getAuthHeader() },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res, "Müşteri eklenemedi");
+}
+
+export async function updateCustomer(id, data) {
+  const res = await fetch(`${API_URL}/customers/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...getAuthHeader() },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res, "Müşteri güncellenemedi");
+}
+
+export async function deleteCustomer(id) {
+  const res = await fetch(`${API_URL}/customers/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeader(),
+  });
+  return handleResponse(res, "Müşteri silinemedi");
+}
+
+// --- Allocations ---
 export async function getAllocations() {
   const res = await fetch(`${API_URL}/allocations`, { headers: getAuthHeader() });
-  if (!res.ok) throw new Error("Failed to fetch allocations");
-  return res.json();
+  return handleResponse(res, "Tahsisler getirilemedi");
 }
 
 export async function getAllocationsReturns() {
   const res = await fetch(`${API_URL}/allocations/returns`, { headers: getAuthHeader() });
-  if (!res.ok) throw new Error("Failed to fetch returned allocations");
-  return res.json();
+  return handleResponse(res, "İade edilmiş tahsisler getirilemedi");
 }
 
 export async function createAllocation(data) {
@@ -36,67 +76,54 @@ export async function createAllocation(data) {
     headers: { "Content-Type": "application/json", ...getAuthHeader() },
     body: JSON.stringify(data),
   });
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.error || "Tahsis oluşturulamadı");
-  }
-  return res.json();
+  return handleResponse(res, "Tahsis oluşturulamadı");
 }
 
+// --- Auth ---
 export async function login(credentials) {
   const res = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(credentials),
   });
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.error || "Giriş başarısız");
-  }
-  const data = await res.json();
+  const data = await handleResponse(res, "Giriş başarısız");
   localStorage.setItem("token", data.token);
   return data;
 }
 
+// --- Reports ---
 export async function getActiveSimCount() {
   const res = await fetch(`${API_URL}/reports/active-sim-count`, { headers: getAuthHeader() });
-  if (!res.ok) throw new Error("Failed to fetch active sim count");
-  return res.json();
+  return handleResponse(res, "Aktif SIM sayısı getirilemedi");
 }
 
 export async function getOperatorDistribution() {
   const res = await fetch(`${API_URL}/reports/operator-distribution`, { headers: getAuthHeader() });
-  if (!res.ok) throw new Error("Failed to fetch operator distribution");
-  return res.json();
+  return handleResponse(res, "Operatör dağılımı getirilemedi");
 }
 
 export async function getOperatorDistributionFromAllocations() {
   const res = await fetch(`${API_URL}/reports/operator-distribution-from-allocations`, { headers: getAuthHeader() });
-  if (!res.ok) throw new Error("Failed to fetch operator distribution from allocations");
-  return res.json();
+  return handleResponse(res, "Tahsislerden operatör dağılımı getirilemedi");
 }
 
 export async function getCustomerAllocations() {
   const res = await fetch(`${API_URL}/reports/customer-allocations`, { headers: getAuthHeader() });
-  if (!res.ok) throw new Error("Failed to fetch customer allocations");
-  return res.json();
+  return handleResponse(res, "Müşteri tahsisleri getirilemedi");
 }
 
 export async function getAllocationsByDate(start, end) {
   const res = await fetch(`${API_URL}/reports/allocations-by-date?start=${start}&end=${end}`, { headers: getAuthHeader() });
-  if (!res.ok) throw new Error("Failed to fetch allocations by date");
-  return res.json();
+  return handleResponse(res, "Tarihe göre tahsisler getirilemedi");
 }
 
-// --- Yeni eklenen fonksiyonlar ---
+// --- Operators & Packages ---
 export async function getOperators() {
   const res = await fetch(`${API_URL}/operators`, { headers: getAuthHeader() });
-  if (!res.ok) throw new Error("Failed to fetch operators");
-  return res.json();
+  return handleResponse(res, "Operatörler getirilemedi");
 }
 
 export async function getPackages() {
   const res = await fetch(`${API_URL}/packages`, { headers: getAuthHeader() });
-  if (!res.ok) throw new Error("Failed to fetch packages");
-  return res.json();
+  return handleResponse(res, "Paketler getirilemedi");
 }

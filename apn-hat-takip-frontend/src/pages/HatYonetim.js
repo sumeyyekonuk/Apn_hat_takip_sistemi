@@ -154,14 +154,14 @@ function HatYonetim() {
             
             <select name="operator_id" value={newSim.operator_id} onChange={handleChange} required>
               <option value="">Operatör seçin</option>
-              {operators.map(op => <option key={op.id} value={op.id}>{op.name}</option>)}
+              {operators.map(op => <option key={`op-${op.id}`} value={op.id}>{op.name}</option>)}
             </select>
 
             <input name="phone_number" placeholder="Numara" value={newSim.phone_number} onChange={handleChange} required />
 
             <select name="package_id" value={newSim.package_id} onChange={handleChange} required>
               <option value="">Paket Tipi seçin</option>
-              {packages.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              {packages.map(p => <option key={`pkg-${p.id}`} value={p.id}>{p.name}</option>)}
             </select>
 
             <input name="capacity" placeholder="Kapasite" value={newSim.capacity} onChange={handleChange} />
@@ -201,7 +201,7 @@ function HatYonetim() {
                 <tr><td colSpan="9" className="text-center text-muted py-4">Hat bulunamadı.</td></tr>
               ) : (
                 simCards.map(sim => (
-                  <tr key={sim.id}>
+                  <tr key={`sim-${sim.id}`}>
                     <td>{sim.Package?.Operator?.name || '-'}</td>
                     <td className="fw-bold">{sim.phone_number || '-'}</td>
                     <td>{sim.Package?.name || '-'}</td>
