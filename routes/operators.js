@@ -1,19 +1,11 @@
+//Bu dosya Express Router kullanarak, /api/operators adresine gelen HTTP isteklerini yakalıyor.
+// Uygun fonksiyonlara yönlendiriyor.
 
-//Bu dosya bir Express Router dosyasıdır. 
-// Yani belirli bir URL'ye gelen istekleri yakalayıp, onları doğru fonksiyonlara yönlendiren bir yol haritasıdır.
+const express = require('express'); //express modulünü çağırdık
+const router = express.Router(); //Router nesnesi oluşturduk
+const operatorsController = require('../controllers/operatorsController');//operatorsController dosyasındaki fonksiyonları kullanır.
 
-
-// /api/operators gibi URL’lere gelen istekleri yakalar.
-// Eğer GET isteği gelmişse → getAllOperators fonksiyonunu çalıştırır.
-// Eğer POST isteği gelmişse → createOperator fonksiyonunu çalıştırır.
-// Bu fonksiyonlar da veritabanı ile ilgili işlemleri yapar (veri çekme, ekleme vs).
-
-
-const express = require('express');
-const router = express.Router();
-const operatorsController = require('../controllers/operatorsController');
-
-router.get('/', operatorsController.getAll);
+router.get('/', operatorsController.getAll); //get isteği atınca controllerdaki getAll fonku çalışır.
 router.post('/', operatorsController.create);
 router.get('/:id', operatorsController.getById);
 router.put('/:id', operatorsController.update);

@@ -11,6 +11,11 @@ const Allocation = sequelize.define('Allocation', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  operator_id: {
+  type: DataTypes.INTEGER,
+  allowNull: true, // bazı tahsislerde boş olabilir
+},
+
   customer_id: {
     type: DataTypes.INTEGER,
     allowNull: false,

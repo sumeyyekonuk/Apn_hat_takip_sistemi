@@ -1,4 +1,3 @@
-
 const { Customer } = require('../models');
 
 exports.getAll = async (req, res) => {

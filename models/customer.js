@@ -12,7 +12,7 @@ const Customer = sequelize.define('Customer', {
   createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
 }, {
   tableName: 'customers',
-  timestamps: false
+  timestamps: true
 });
 
 module.exports = Customer;

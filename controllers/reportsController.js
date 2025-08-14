@@ -3,17 +3,18 @@ const { SimCard, Allocation, Customer, Package, Operator } = require('../models'
 const sequelize = require('sequelize');
 const { Op } = require('sequelize');
 
-// 1. Aktif durumda olan sim kartların sayısını döner
+// 1. Aktif sim kart sayısı
 exports.activeSimCardCount = async (req, res) => {
   try {
     const count = await SimCard.count({ where: { status: 'aktif' } });
     res.json({ aktifHatSayisi: count });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Active sim card count error:', err);
+    res.status(500).json({ message: 'Sunucu hatası', error: err.message });
   }
 };
 
-// 2. Operatörlere göre sim kartların sayısını gruplayarak döner (SimCard → Package → Operator)
+// 2. Operatör bazlı sim kart dağılımı
 exports.operatorDistribution = async (req, res) => {
   try {
     const data = await SimCard.findAll({
@@ -37,68 +38,64 @@ exports.operatorDistribution = async (req, res) => {
       raw: true
     });
 
+    if (!data || data.length === 0) return res.json([]);
+
     const result = data.map(item => ({
-      operator: item.operatorName,
-      count: item.count
+      operator: item.operatorName || 'Bilinmeyen',
+      count: parseInt(item.count) || 0
     }));
 
     res.json(result);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Operator distribution error:', err);
+    res.status(500).json({ message: 'Sunucu hatası', error: err.message });
   }
 };
 
-// 2b. Allocations tablosundan operatör dağılımını döner (allocations tablosuna operator_id eklendi)
+// 2b. Allocation tablosundan operatör dağılımı (pasta grafiği için)
 exports.operatorDistributionFromAllocations = async (req, res) => {
   try {
-    const data = await Allocation.findAll({
-      attributes: [
-        [sequelize.col('Operator.name'), 'operatorName'],
-        [sequelize.fn('COUNT', sequelize.col('Allocation.id')), 'count']
-      ],
+    const allocations = await Allocation.findAll({
       include: [
-        {
-          model: Operator,
-          attributes: []
-        }
-      ],
-      group: ['Operator.name'],
-      raw: true
+        { model: Operator, attributes: ['name'], required: false } // Operator boş olsa da query çalışır
+      ]
     });
 
-    const result = data.map(item => ({
-      operator: item.operatorName,
-      count: item.count
-    }));
+    if (!allocations || allocations.length === 0) return res.json([]);
 
+    const distribution = allocations.reduce((acc, a) => {
+      const opName = a.Operator?.name || 'Bilinmeyen';
+      acc[opName] = (acc[opName] || 0) + 1;
+      return acc;
+    }, {});
+
+    const result = Object.entries(distribution).map(([operator, count]) => ({ operator, count }));
     res.json(result);
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Operator distribution from allocations error:', err);
+    res.status(500).json({ message: 'Sunucu hatası', error: err.message });
   }
 };
 
-// 3. Müşterilere tahsis edilmiş sim kartların listesini, müşteri şirket adı ve hat numarasıyla birlikte döner
+// 3. Müşteri tahsisleri
 exports.customerAllocations = async (req, res) => {
   try {
     const data = await Allocation.findAll({
       include: [
-        {
-          model: Customer,
-          attributes: ['company_name']
-        },
-        {
-          model: SimCard,
-          attributes: ['phone_number']
-        }
+        { model: Customer, attributes: ['company_name'] },
+        { model: SimCard, attributes: ['phone_number'] }
       ]
     });
+    if (!data || data.length === 0) return res.json([]);
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Customer allocations error:', err);
+    res.status(500).json({ message: 'Sunucu hatası', error: err.message });
   }
 };
 
-// 4. Belirtilen tarih aralığında yapılmış tahsisatları döner (müşteri ve sim kart bilgileri dahil)
+// 4. Tarih aralığı tahsisleri
 exports.allocationsByDate = async (req, res) => {
   try {
     const { start, end } = req.query;
@@ -113,8 +110,10 @@ exports.allocationsByDate = async (req, res) => {
         { model: SimCard, attributes: ['phone_number'] }
       ]
     });
+    if (!data || data.length === 0) return res.json([]);
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Allocations by date error:', err);
+    res.status(500).json({ message: 'Sunucu hatası', error: err.message });
   }
 };

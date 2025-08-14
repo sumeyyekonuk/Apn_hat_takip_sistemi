@@ -45,6 +45,9 @@ function Dashboard() {
   const [packageTypeDistributionData, setPackageTypeDistributionData] = useState(null);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return; // login yoksa API çağrılarını engelle
+
     // Toplam sim kart ve paket tipi
     getSimCards()
       .then((data) => {
@@ -78,9 +81,10 @@ function Dashboard() {
       })
       .catch(console.error);
 
-    // Operatör bazlı dağılım allocations tablosundan
+    // Operatör bazlı dağılım
     getOperatorDistributionFromAllocations()
       .then((data) => {
+        if (!data || !data.length) return; // veri yoksa işlem yapma
         const labels = data.map((item) => item.operator);
         const counts = data.map((item) => item.count);
 
@@ -100,7 +104,10 @@ function Dashboard() {
 
         setLoadingOperator(false);
       })
-      .catch(console.error);
+      .catch((err) => {
+        console.error("Operator distribution error:", err);
+        setLoadingOperator(false);
+      });
 
     // Tahsisler ve aylık trend
     getAllocations()
@@ -203,14 +210,18 @@ function Dashboard() {
         <section className="graph-section">
           <h4>Operatör Bazlı Dağılım (Pasta Grafik)</h4>
           {loadingOperator ? <div>Yükleniyor...</div> : (
-            <Pie data={operatorDistributionData} options={{ maintainAspectRatio: false }} height={250} width={250} />
+            operatorDistributionData ? 
+            <Pie data={operatorDistributionData} options={{ maintainAspectRatio: false }} height={250} width={250} /> :
+            <div>Veri yok</div>
           )}
         </section>
 
         <section className="graph-section">
           <h4>Aylık Tahsis Trendi (Çizgi Grafik)</h4>
           {loadingAllocations ? <div>Yükleniyor...</div> : (
-            <Line data={monthlyAllocationTrendData} options={{ maintainAspectRatio: false }} height={250} width={400} />
+            monthlyAllocationTrendData ?
+            <Line data={monthlyAllocationTrendData} options={{ maintainAspectRatio: false }} height={250} width={400} /> :
+            <div>Veri yok</div>
           )}
         </section>
 

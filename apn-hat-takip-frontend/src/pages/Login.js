@@ -12,10 +12,14 @@ function Login() {
     e.preventDefault();
     setError("");
     try {
-      // login fonksiyonuna obje olarak gönderiyoruz
-      const data = await login({ username, password });
+      //const data = await login(username, password);
+
+const data = await login({ username, password });
+
+      // Token'ı localStorage'a kaydet
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+      // Giriş başarılıysa dashboard'a yönlendir
       navigate("/");
     } catch (err) {
       setError(err.message);

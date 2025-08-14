@@ -1,6 +1,4 @@
-.hat-tahsis-page {
-  /* fallback - not used directly, kept if needed */
-}
+/* removed empty .hat-tahsis-page ruleset */
 
 /* top-level wrapper that fills viewport but DOES NOT change global body */
 .hat-tahsis-page,
@@ -8,9 +6,7 @@
   box-sizing: border-box;
 }
 
-.hat-tahsis-page .hat-card {
-  /* not used; kept for reference */
-}
+/* removed empty .hat-tahsis-page .hat-card ruleset */
 
 /* main page wrapper (applied to .hat-tahsis-page root in component) */
 .hat-tahsis-page {

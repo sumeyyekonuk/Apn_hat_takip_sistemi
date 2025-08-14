@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-const Package = require('./packages'); // Package modelini import et
+
 
 const SimCard = sequelize.define('SimCard', {
   id: {
@@ -33,12 +33,9 @@ const SimCard = sequelize.define('SimCard', {
   },
 }, {
   tableName: 'sim_cards',
-  timestamps: true,
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
+  timestamps: true,          // timestamps aktif
+  createdAt: 'createdAt',    // veritabanındaki createdAt kolonuna karşılık
+  updatedAt: 'updatedAt',    // veritabanındaki updatedAt kolonuna karşılık
 });
-
-// İlişki: SimCard bir Package’a ait
-SimCard.belongsTo(Package, { foreignKey: 'package_id' });
 
 module.exports = SimCard;

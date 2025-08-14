@@ -1,53 +1,28 @@
-// Express modülünü projeye dahil ediyoruz
-const express = require('express');
+// routes/reports.js
 
-// Express Router nesnesini oluşturuyoruz
+const express = require('express');
 const router = express.Router();
 
-// Raporlama işlemlerini yönetecek controller dosyasını dahil ediyoruz
+// Controller ve modeller
 const reportsController = require('../controllers/reportsController');
-
-// Kimlik doğrulama ve yetkilendirme kontrolü yapan middleware'i dahil ediyoruz
 const auth = require('../middleware/auth');
+const { Allocation, Operator, Sequelize } = require('../models');
 
 /**
  * @swagger
  * tags:
  *   name: Reports
  *   description: Raporlama işlemleri
- * 
- * Swagger dokümantasyonunda "Reports" adında bir grup (tag) tanımlanıyor.
- * Bu grup altında raporlama ile ilgili tüm endpoint'ler listelenecek.
  */
 
 // 📌 1. Aktif hat sayısını döndürür
-/**
- * @swagger
- * /api/reports/active-sim-count:
- *   get:
- *     summary: Aktif hat sayısını döndürür
- *     tags: [Reports]
- *     responses:
- *       200:
- *         description: Başarılı
- */
 router.get(
-  '/active-sim-count',                     // API endpoint URL'si
-  auth(['admin', 'user']),                  // Sadece admin ve user yetkisine sahip kullanıcılar erişebilir
-  reportsController.activeSimCardCount      // İstek geldiğinde çalışacak controller fonksiyonu
+  '/active-sim-count',
+  auth(['admin', 'user']),
+  reportsController.activeSimCardCount
 );
 
-// 📌 2. Operatör bazlı hat dağılımı raporu (SimCard → Package → Operator)
-/**
- * @swagger
- * /api/reports/operator-distribution:
- *   get:
- *     summary: SimCard tablosu üzerinden operatör bazlı hat dağılımı
- *     tags: [Reports]
- *     responses:
- *       200:
- *         description: Başarılı
- */
+// 📌 2. SimCard üzerinden operatör bazlı hat dağılımı
 router.get(
   '/operator-distribution',
   auth(['admin', 'user']),
@@ -55,33 +30,45 @@ router.get(
 );
 
 // 📌 2b. Allocations tablosundan operatör bazlı dağılım
-/**
- * @swagger
- * /api/reports/operator-distribution-from-allocations:
- *   get:
- *     summary: Allocations tablosu üzerinden operatör bazlı hat dağılımı
- *     tags: [Reports]
- *     responses:
- *       200:
- *         description: Başarılı
- */
 router.get(
   '/operator-distribution-from-allocations',
   auth(['admin', 'user']),
-  reportsController.operatorDistributionFromAllocations
+  async (req, res) => {
+    try {
+      // Düzeltilmiş ve güvenli sürüm
+      const allocations = await Allocation.findAll({
+        include: [
+          {
+            model: Operator,
+            attributes: ['name'],
+            required: false // Operator boş olsa da query çalışır
+          }
+        ]
+      });
+
+      if (!allocations || allocations.length === 0) return res.json([]);
+
+      // Operatör bazlı dağılımı oluştur
+      const distribution = allocations.reduce((acc, a) => {
+        const opName = a.Operator?.name || 'Bilinmeyen';
+        acc[opName] = (acc[opName] || 0) + 1;
+        return acc;
+      }, {});
+
+      const result = Object.entries(distribution).map(([operator, count]) => ({
+        operator,
+        count
+      }));
+
+      res.json(result);
+    } catch (error) {
+      console.error('Operator distribution from allocations error:', error);
+      res.status(500).json({ message: 'Sunucuda hata oluştu', error: error.message });
+    }
+  }
 );
 
 // 📌 3. Müşteri bazlı tahsisat raporu
-/**
- * @swagger
- * /api/reports/customer-allocations:
- *   get:
- *     summary: Müşteri bazlı tahsisat raporu
- *     tags: [Reports]
- *     responses:
- *       200:
- *         description: Başarılı
- */
 router.get(
   '/customer-allocations',
   auth(['admin', 'user']),
@@ -89,37 +76,27 @@ router.get(
 );
 
 // 📌 4. Tarihe göre tahsisat raporu
-/**
- * @swagger
- * /api/reports/allocations-by-date:
- *   get:
- *     summary: Tarihe göre tahsisat raporu
- *     tags: [Reports]
- *     responses:
- *       200:
- *         description: Başarılı
- */
 router.get(
   '/allocations-by-date',
   auth(['admin', 'user']),
   reportsController.allocationsByDate
 );
 
-// 🔹 Test endpoint: operatör dağılımını kontrol etmek için
-router.get('/operator-distribution-test', async (req, res) => {
-  try {
-    await reportsController.operatorDistributionFromAllocations(
-      { query: {} },
-      { json: (output) => res.json(output) }
-    );
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+// 🔹 Test endpoint: operatör dağılımını kontrol etmek için (middleware ile)
+router.get(
+  '/operator-distribution-test',
+  auth(['admin', 'user']),
+  async (req, res) => {
+    try {
+      await reportsController.operatorDistributionFromAllocations(
+        { query: {} },
+        { json: (output) => res.json(output) }
+      );
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: err.message });
+    }
   }
-});
+);
 
-// 📌 Router'ı dışa aktarıyoruz ki app.js veya index.js gibi ana dosyada kullanılabilsin
 module.exports = router;
-
-// Bu dosya, raporlama ile ilgili API endpoint'lerini tanımlar. 
-// Her endpoint için ilgili controller fonksiyonunu ve yetki kontrolünü (auth middleware) belirtir. 
-// Swagger yorumları, otomatik API dokümantasyonu oluşturmak için kullanılır.

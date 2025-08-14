@@ -41,12 +41,36 @@ function App() {
           <Route path="/login" element={<Login />} />
 
           {/* PrivateRoute ile korunan sayfalar */}
-          <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-          <Route path="/sim-cards" element={<PrivateRoute><SimCards /></PrivateRoute>} />
-          <Route path="/customers" element={<PrivateRoute><Customers /></PrivateRoute>} />
-          <Route path="/hat-yonetim" element={<PrivateRoute><HatYonetim /></PrivateRoute>} />
-          <Route path="/hat-tahsisi" element={<PrivateRoute><HatTahsisForm /></PrivateRoute>} />
-          <Route path="/returned-simcards" element={<PrivateRoute><ReturnedSimCards /></PrivateRoute>} />
+          <Route path="/" element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          } />
+          <Route path="/sim-cards" element={
+            <PrivateRoute>
+              <SimCards />
+            </PrivateRoute>
+          } />
+          <Route path="/customers" element={
+            <PrivateRoute>
+              <Customers />
+            </PrivateRoute>
+          } />
+          <Route path="/hat-yonetim" element={
+            <PrivateRoute>
+              <HatYonetim />
+            </PrivateRoute>
+          } />
+          <Route path="/hat-tahsisi" element={
+            <PrivateRoute>
+              <HatTahsisForm />
+            </PrivateRoute>
+          } />
+          <Route path="/returned-simcards" element={
+            <PrivateRoute>
+              <ReturnedSimCards />
+            </PrivateRoute>
+          } />
 
           {/* Tanımlanmayan sayfalar için yönlendirme */}
           <Route path="*" element={<Navigate to="/" replace />} />
