@@ -14,15 +14,12 @@ async function handleResponse(res, defaultErrorMessage) {
     try {
       const errorData = await res.json();
       errorMessage = errorData.error || errorMessage;
-    } catch {
-      // JSON değilse varsayılan hata mesajı kullanılacak
-    }
+    } catch {}
 
-    // 401 Unauthorized ise logout yap
     if (res.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.href = "/login"; // login sayfasına yönlendir
+      window.location.href = "/login";
     }
 
     throw new Error(errorMessage);
@@ -35,6 +32,52 @@ export async function getSimCards(status) {
   const url = status ? `${API_URL}/sim-cards?status=${status}` : `${API_URL}/sim-cards`;
   const res = await fetch(url, { headers: getAuthHeader() });
   return handleResponse(res, "SIM kartlar getirilemedi");
+}
+
+export async function createSimCard(data) {
+  if (!data.package_id || !data.operator_id) {
+    throw new Error("Package ID ve Operator ID zorunludur.");
+  }
+
+  const payload = {
+    ...data,
+    package_id: Number(data.package_id),
+    operator_id: Number(data.operator_id),
+  };
+
+  const res = await fetch(`${API_URL}/sim-cards`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getAuthHeader() },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(res, "Sim kart oluşturulamadı");
+}
+
+export async function updateSimCard(id, data) {
+  if (!data.package_id || !data.operator_id) {
+    throw new Error("Package ID ve Operator ID zorunludur.");
+  }
+
+  const payload = {
+    ...data,
+    package_id: Number(data.package_id),
+    operator_id: Number(data.operator_id),
+  };
+
+  const res = await fetch(`${API_URL}/sim-cards/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...getAuthHeader() },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(res, "Sim kart güncellenemedi");
+}
+
+export async function deleteSimCard(id) {
+  const res = await fetch(`${API_URL}/sim-cards/${id}`, {
+    method: "DELETE",
+    headers: getAuthHeader(),
+  });
+  return handleResponse(res, "Sim kart silinemedi");
 }
 
 // --- Customers ---
@@ -62,10 +105,7 @@ export async function updateCustomer(id, data) {
 }
 
 export async function deleteCustomer(id) {
-  const res = await fetch(`${API_URL}/customers/${id}`, {
-    method: "DELETE",
-    headers: getAuthHeader(),
-  });
+  const res = await fetch(`${API_URL}/customers/${id}`, { headers: getAuthHeader() });
   return handleResponse(res, "Müşteri silinemedi");
 }
 

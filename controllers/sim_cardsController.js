@@ -1,6 +1,5 @@
 const { SimCard, Package, Operator } = require('../models');
 
-// IP adresi doğrulama fonksiyonu
 function isValidIPv4(ip) {
   if (typeof ip !== 'string') return false;
   const parts = ip.split('.');
@@ -11,10 +10,8 @@ function isValidIPv4(ip) {
   });
 }
 
-// Enum status kontrolü
 const VALID_STATUS = ['stok', 'aktif', 'iptal', 'iade'];
 
-// --- Tüm SIM kartları getir ---
 async function getAll(req, res) {
   try {
     const statusFilter = req.query.status ? { status: req.query.status } : {};
@@ -36,7 +33,6 @@ async function getAll(req, res) {
   }
 }
 
-// --- Tek bir SIM kart getir ---
 async function getById(req, res) {
   try {
     const simCard = await SimCard.findByPk(req.params.id, {
@@ -56,14 +52,9 @@ async function getById(req, res) {
   }
 }
 
-// --- Yeni SIM kart oluştur ---
 async function create(req, res) {
   try {
     const { phone_number, package_id, ip_address, has_static_ip, status, purchase_date, capacity, price } = req.body;
-
-    if (!phone_number || !/^05\d{8}$/.test(phone_number)) {
-      return res.status(400).json({ error: 'Telefon numarası 10 haneli ve 05 ile başlamalıdır.' });
-    }
 
     if (ip_address && !isValidIPv4(ip_address)) {
       return res.status(400).json({ error: 'Geçerli bir IPv4 adresi giriniz.' });
@@ -90,14 +81,9 @@ async function create(req, res) {
   }
 }
 
-// --- SIM kart güncelle ---
 async function update(req, res) {
   try {
     const { phone_number, package_id, ip_address, has_static_ip, status, purchase_date, capacity, price } = req.body;
-
-    if (phone_number && !/^05\d{8}$/.test(phone_number)) {
-      return res.status(400).json({ error: 'Telefon numarası 10 haneli ve 05 ile başlamalıdır.' });
-    }
 
     if (ip_address && !isValidIPv4(ip_address)) {
       return res.status(400).json({ error: 'Geçerli bir IPv4 adresi giriniz.' });
@@ -127,7 +113,6 @@ async function update(req, res) {
   }
 }
 
-// --- SIM kart sil ---
 async function remove(req, res) {
   try {
     const simCard = await SimCard.findByPk(req.params.id);
@@ -140,10 +125,9 @@ async function remove(req, res) {
   }
 }
 
-// --- Bulk CSV import ---
 async function bulkCreate(req, res) {
   try {
-    const { simCards } = req.body; // frontend CSV’den parse edip dizi gönderecek
+    const { simCards } = req.body;
     if (!Array.isArray(simCards) || simCards.length === 0) {
       return res.status(400).json({ error: 'Geçerli bir SIM kart listesi gönderin.' });
     }
@@ -154,7 +138,6 @@ async function bulkCreate(req, res) {
       try {
         const { phone_number, package_id, ip_address, has_static_ip, status, purchase_date, capacity, price } = row;
 
-        if (!phone_number || !/^05\d{8}$/.test(phone_number)) throw new Error(`Satır ${i + 1}: Geçersiz telefon numarası`);
         if (ip_address && !isValidIPv4(ip_address)) throw new Error(`Satır ${i + 1}: Geçersiz IP`);
         if (status && !VALID_STATUS.includes(status)) throw new Error(`Satır ${i + 1}: Geçersiz status`);
 

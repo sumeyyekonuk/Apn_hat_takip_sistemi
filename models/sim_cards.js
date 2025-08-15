@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-
+const Operator = require('./operator'); // Operator modeli import edildi
 
 const SimCard = sequelize.define('SimCard', {
   id: {
@@ -14,6 +14,10 @@ const SimCard = sequelize.define('SimCard', {
     allowNull: false,
   },
   package_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  operator_id: {              // Yeni alan eklendi
     type: DataTypes.INTEGER,
     allowNull: false,
   },
@@ -31,11 +35,18 @@ const SimCard = sequelize.define('SimCard', {
   purchase_date: {
     type: DataTypes.DATEONLY,
   },
+  is_reallocated: {           
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
 }, {
   tableName: 'sim_cards',
-  timestamps: true,          // timestamps aktif
-  createdAt: 'createdAt',    // veritabanındaki createdAt kolonuna karşılık
-  updatedAt: 'updatedAt',    // veritabanındaki updatedAt kolonuna karşılık
+  timestamps: true,
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
 });
+
+// SimCard ile Operator ilişkisi
+SimCard.belongsTo(Operator, { foreignKey: 'operator_id' });
 
 module.exports = SimCard;
