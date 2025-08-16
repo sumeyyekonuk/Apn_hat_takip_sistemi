@@ -1,5 +1,3 @@
-import { useNavigate } from "react-router-dom";
-
 const API_URL = "http://localhost:5000/api";
 
 // --- Ortak Fonksiyonlar ---
@@ -13,8 +11,10 @@ async function handleResponse(res, defaultErrorMessage) {
     let errorMessage = defaultErrorMessage;
     try {
       const errorData = await res.json();
-      errorMessage = errorData.error || errorMessage;
-    } catch {}
+      errorMessage = errorData?.error || errorMessage;
+    } catch (err) {
+      console.error("Response parse error:", err);
+    }
 
     if (res.status === 401) {
       localStorage.removeItem("token");
@@ -24,7 +24,11 @@ async function handleResponse(res, defaultErrorMessage) {
 
     throw new Error(errorMessage);
   }
-  return res.json();
+  try {
+    return await res.json();
+  } catch {
+    return {};
+  }
 }
 
 // --- SIM Cards ---
@@ -35,16 +39,8 @@ export async function getSimCards(status) {
 }
 
 export async function createSimCard(data) {
-  if (!data.package_id || !data.operator_id) {
-    throw new Error("Package ID ve Operator ID zorunludur.");
-  }
-
-  const payload = {
-    ...data,
-    package_id: Number(data.package_id),
-    operator_id: Number(data.operator_id),
-  };
-
+  if (!data.package_id || !data.operator_id) throw new Error("Package ID ve Operator ID zorunludur.");
+  const payload = { ...data, package_id: Number(data.package_id), operator_id: Number(data.operator_id) };
   const res = await fetch(`${API_URL}/sim-cards`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...getAuthHeader() },
@@ -54,16 +50,8 @@ export async function createSimCard(data) {
 }
 
 export async function updateSimCard(id, data) {
-  if (!data.package_id || !data.operator_id) {
-    throw new Error("Package ID ve Operator ID zorunludur.");
-  }
-
-  const payload = {
-    ...data,
-    package_id: Number(data.package_id),
-    operator_id: Number(data.operator_id),
-  };
-
+  if (!data.package_id || !data.operator_id) throw new Error("Package ID ve Operator ID zorunludur.");
+  const payload = { ...data, package_id: Number(data.package_id), operator_id: Number(data.operator_id) };
   const res = await fetch(`${API_URL}/sim-cards/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json", ...getAuthHeader() },
@@ -73,10 +61,7 @@ export async function updateSimCard(id, data) {
 }
 
 export async function deleteSimCard(id) {
-  const res = await fetch(`${API_URL}/sim-cards/${id}`, {
-    method: "DELETE",
-    headers: getAuthHeader(),
-  });
+  const res = await fetch(`${API_URL}/sim-cards/${id}`, { method: "DELETE", headers: getAuthHeader() });
   return handleResponse(res, "Sim kart silinemedi");
 }
 
@@ -121,6 +106,7 @@ export async function getAllocationsReturns() {
 }
 
 export async function createAllocation(data) {
+  if (!data.customer_id || !data.sim_card_id) throw new Error("Customer ve SIM ID zorunludur.");
   const res = await fetch(`${API_URL}/allocations`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...getAuthHeader() },

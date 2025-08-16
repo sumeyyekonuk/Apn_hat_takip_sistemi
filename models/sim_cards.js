@@ -19,7 +19,7 @@ const SimCard = sequelize.define('SimCard', {
   },
   operator_id: {              // Yeni alan eklendi
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
   },
   status: {
     type: DataTypes.ENUM('stok', 'aktif', 'iptal', 'iade'),

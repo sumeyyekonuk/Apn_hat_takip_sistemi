@@ -42,4 +42,14 @@ router.put('/:id', auth(['admin', 'user']), allocationsController.update);
 // Tahsis sil (sadece admin)
 router.delete('/:id', auth(['admin']), allocationsController.remove);
 
+
+
+
+
+
+
+
+
+
+
 module.exports = router;   // Bu router'ı dışa aktarır.

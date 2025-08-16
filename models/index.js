@@ -4,6 +4,8 @@ const SimCard = require('./sim_cards');
 const Customer = require('./customer');
 const Allocation = require('./allocations');
 const User = require('./user');
+const sequelize = require('../config/database'); // ✅ gerçek instance
+
 
 // --- İlişkiler ---
 
@@ -37,5 +39,6 @@ module.exports = {
   SimCard,
   Customer,
   Allocation,
-  User
+  User,
+  sequelize
 };
