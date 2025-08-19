@@ -29,6 +29,7 @@ async function getAll(req, res) {
     });
     res.json(simCards);
   } catch (err) {
+    console.error("SimCard GET ALL Error:", err); // ← HATA LOGU
     res.status(500).json({ error: err.message });
   }
 }
@@ -48,6 +49,7 @@ async function getById(req, res) {
 
     res.json(simCard);
   } catch (err) {
+    console.error("SimCard GET by ID Error:", err); // ← HATA LOGU
     res.status(500).json({ error: err.message });
   }
 }
@@ -77,6 +79,7 @@ async function create(req, res) {
 
     res.status(201).json(newSimCard);
   } catch (err) {
+    console.error("SimCard CREATE Error:", err); // ← HATA LOGU
     res.status(400).json({ error: err.message });
   }
 }
@@ -109,6 +112,7 @@ async function update(req, res) {
 
     res.json(simCard);
   } catch (err) {
+    console.error("SimCard UPDATE Error:", err); // ← HATA LOGU
     res.status(400).json({ error: err.message });
   }
 }
@@ -121,6 +125,7 @@ async function remove(req, res) {
     await simCard.destroy();
     res.json({ message: 'Sim kart silindi' });
   } catch (err) {
+    console.error("SimCard DELETE Error:", err); // ← HATA LOGU
     res.status(500).json({ error: err.message });
   }
 }
@@ -153,12 +158,14 @@ async function bulkCreate(req, res) {
         });
         results.push(newSim);
       } catch (err) {
+        console.error(`SimCard BULK CREATE Error (row ${i + 1}):`, err); // ← HATA LOGU
         results.push({ error: err.message, row });
       }
     }
 
     res.json(results);
   } catch (err) {
+    console.error("SimCard BULK CREATE Error:", err); // ← HATA LOGU
     res.status(500).json({ error: err.message });
   }
 }

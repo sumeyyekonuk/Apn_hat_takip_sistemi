@@ -3,39 +3,48 @@ import { useNavigate } from "react-router-dom";
 import { login } from "../services/api";
 
 function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // Sayfa açıldığında token kontrolü
+  // ✅ Token kontrolü - kullanıcı giriş yapmışsa tekrar login'e girmesin
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      navigate("/"); // Token varsa dashboard'a yönlendir
+      navigate("/"); 
     }
   }, [navigate]);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
     try {
-      const data = await login({ username, password });
+      const data = await login(formData);
 
-      // Token ve kullanıcı bilgilerini kaydet
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      navigate("/"); // Başarılı girişte dashboard
+      if (data?.token) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user || {}));
+        navigate("/");
+      } else {
+        throw new Error("Geçersiz yanıt, token alınamadı.");
+      }
     } catch (err) {
-      setError(err.message);
+      console.error("Login error:", err);
+      setError(err.message || "Giriş başarısız, tekrar deneyin.");
     }
   };
 
   return (
     <div className="container mt-5" style={{ maxWidth: "400px" }}>
-      <h2 className="mb-4">Giriş Yap</h2>
+      <h2 className="mb-4 text-center">🔐 Giriş Yap</h2>
+
       {error && <div className="alert alert-danger">{error}</div>}
+
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label htmlFor="username" className="form-label">Kullanıcı Adı</label>
@@ -43,8 +52,8 @@ function Login() {
             type="text"
             id="username"
             className="form-control"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={formData.username}
+            onChange={handleChange}
             required
             autoFocus
           />
@@ -56,13 +65,15 @@ function Login() {
             type="password"
             id="password"
             className="form-control"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={formData.password}
+            onChange={handleChange}
             required
           />
         </div>
 
-        <button type="submit" className="btn btn-primary w-100">Giriş</button>
+        <button type="submit" className="btn btn-primary w-100">
+          Giriş
+        </button>
       </form>
     </div>
   );

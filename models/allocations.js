@@ -12,10 +12,9 @@ const Allocation = sequelize.define('Allocation', {
     allowNull: false,
   },
   operator_id: {
-  type: DataTypes.INTEGER,
-  allowNull: true, // bazı tahsislerde boş olabilir
-},
-
+    type: DataTypes.INTEGER,
+    allowNull: true, // bazı tahsislerde boş olabilir
+  },
   customer_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -35,6 +34,15 @@ const Allocation = sequelize.define('Allocation', {
   status: {
     type: DataTypes.ENUM('aktif', 'iade', 'iptal'),
     defaultValue: 'aktif',
+  },
+  // --- Yeni eklenen alanlar ---
+  return_reason: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  returned_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
   },
 }, {
   tableName: 'allocations',

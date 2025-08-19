@@ -1,9 +1,6 @@
-// burada allocation için http isteklerini yönetecek bir router oluşturuyoruz
-// allocationsController'dan fonksiyonları kullanarak CRUD işlemlerini yapacağız
-
-const express = require('express');  // Express framework'ünü içe aktarıyoruz
-const router = express.Router();  // Yeni bir router nesnesi oluşturuyoruz
-const allocationsController = require('../controllers/allocationsController');  // Controller dosyasını içe aktar
+const express = require('express');
+const router = express.Router();
+const allocationsController = require('../controllers/allocationsController');
 const auth = require('../middleware/auth');
 
 /**
@@ -13,43 +10,28 @@ const auth = require('../middleware/auth');
  *   description: Hat tahsis işlemleri
  */
 
-/**
- * @swagger
- * /api/allocations:
- *   get:
- *     summary: Tüm tahsisleri listeler
- *     tags: [Allocations]
- *     responses:
- *       200:
- *         description: Başarılı
- */
-
-// İade alınan hatları listele (örnek: /api/allocations/returns) - :id rotasından önce olmalı
+// --- İade edilmiş tahsisleri listele ---
 router.get('/returns', allocationsController.getReturns);
 
-// Tüm tahsisleri listele (herkes erişebilir)
+// --- Tüm tahsisleri listele ---
 router.get('/', allocationsController.getAll);
 
-// ID ile tahsis getir (herkes erişebilir)
+// --- ID ile tahsis getir ---
 router.get('/:id', allocationsController.getById);
 
-// Yeni tahsis oluştur (sadece admin ve user rolü)
+// --- Yeni tahsis oluştur (admin ve user) ---
 router.post('/', auth(['admin', 'user']), allocationsController.create);
 
-// Tahsis güncelle (sadece admin ve user rolü)
+// --- Tahsis güncelle (admin ve user) ---
 router.put('/:id', auth(['admin', 'user']), allocationsController.update);
 
-// Tahsis sil (sadece admin)
+// --- Tahsis sil (sadece admin) ---
 router.delete('/:id', auth(['admin']), allocationsController.remove);
 
+// --- Tahsis iade et (admin ve user) ---
+router.post('/return', auth(['admin', 'user']), (req, res, next) => {
+  console.log('RETURN ROUTE HIT'); // <-- Post isteği terminale loglanacak
+  next();
+}, allocationsController.returnAllocation);
 
-
-
-
-
-
-
-
-
-
-module.exports = router;   // Bu router'ı dışa aktarır.
+module.exports = router;

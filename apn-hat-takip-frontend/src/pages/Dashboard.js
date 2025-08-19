@@ -176,7 +176,7 @@ function Dashboard() {
     <div className="dashboard-container">
       <h2 className="dashboard-title">
         <span className="home-icon" role="img" aria-label="home">🏠</span>
-        APN Hat Takip Dashboard
+        Hat Takip Sistemi 
       </h2>
 
       <div className="dashboard-cards-row">

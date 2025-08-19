@@ -16,12 +16,12 @@ function Sidebar() {
       <h3>APN Sistem</h3>
       <nav>
         <ul>
-          <li><NavLink to="/" end className={({ isActive }) => isActive ? "active" : ""}>Dashboard</NavLink></li>
+          <li><NavLink to="/" end className={({ isActive }) => isActive ? "active" : ""}>Ana Sayfa</NavLink></li>
           <li><NavLink to="/sim-cards" className={({ isActive }) => isActive ? "active" : ""}>Sim Kartlar</NavLink></li>
-          <li><NavLink to="/customers" className={({ isActive }) => isActive ? "active" : ""}>Müşteriler</NavLink></li>
-          <li><NavLink to="/hat-yonetim" className={({ isActive }) => isActive ? "active" : ""}>Hat Yönetim</NavLink></li>
+          <li><NavLink to="/customers" className={({ isActive }) => isActive ? "active" : ""}>Müşteri Yönetimi</NavLink></li>
+          <li><NavLink to="/hat-yonetim" className={({ isActive }) => isActive ? "active" : ""}>Hat Yönetimi</NavLink></li>
           <li><NavLink to="/hat-tahsisi" className={({ isActive }) => isActive ? "active" : ""}>Hat Tahsisi</NavLink></li>
-          <li><NavLink to="/returned-simcards" className={({ isActive }) => isActive ? "active" : ""}>İade Edilen Hatlar</NavLink></li>
+          <li><NavLink to="/returned-simcards" className={({ isActive }) => isActive ? "active" : ""}>İade İşlemleri</NavLink></li>
         </ul>
       </nav>
 

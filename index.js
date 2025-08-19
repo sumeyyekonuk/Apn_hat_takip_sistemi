@@ -1,5 +1,3 @@
-// index.js veya app.js
-
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -85,5 +83,13 @@ sequelize.authenticate()
     console.error('Veritabanı bağlantı hatası:', err);
     process.exit(1);
   });
+
+// -----------------------------
+// GLOBAL ERROR MIDDLEWARE
+// -----------------------------
+app.use((err, req, res, next) => {
+  console.error("Global Error:", err);  // Terminale loglar
+  res.status(500).json({ error: "Internal Server Error" }); // Frontend'e 500 döner
+});
 
 module.exports = app;
