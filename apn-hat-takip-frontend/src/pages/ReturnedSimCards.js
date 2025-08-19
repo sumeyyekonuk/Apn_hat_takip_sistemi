@@ -13,7 +13,7 @@ const reasons = [
 
 function ReturnedSimCards() {
   const [activeCards, setActiveCards] = useState([]);
-  const [returnedCards, setReturnedCards] = useState([]); // ✅ iade edilenler
+  const [returnedCards, setReturnedCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedReasons, setSelectedReasons] = useState({});
@@ -22,7 +22,6 @@ function ReturnedSimCards() {
 
   const token = localStorage.getItem("token");
 
-  // Aktif hatları çek
   useEffect(() => {
     if (!token) {
       setError("Lütfen giriş yapın.");
@@ -32,20 +31,29 @@ function ReturnedSimCards() {
 
     const fetchData = async () => {
       try {
-        const [activeRes, returnedRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/allocations?status=aktif", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get("http://localhost:5000/api/allocations?status=stok", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
+        // Aktif hatlar
+        const activeRes = await axios.get(
+          "http://localhost:5000/api/allocations?status=aktif",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
 
-        setActiveCards(activeRes.data);
+        // İade edilmiş hatlar
+        const returnedRes = await axios.get(
+          "http://localhost:5000/api/allocations/returns",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        // Üstteki aktif listeden iade edilmiş olanları çıkart
+        const activeFiltered = activeRes.data.filter(
+          (a) => !returnedRes.data.some((r) => r.id === a.id)
+        );
+
+        setActiveCards(activeFiltered);
         setReturnedCards(returnedRes.data);
+
       } catch (err) {
         console.error(err);
-        setError("Hatlar çekilemedi.");
+        setError("Veriler çekilemedi.");
       } finally {
         setLoading(false);
       }
@@ -54,32 +62,29 @@ function ReturnedSimCards() {
     fetchData();
   }, [token]);
 
-  const handleReturn = async (id) => {
-    let reason = selectedReasons[id];
+  const handleReturn = async (allocation) => {
+    let reason = selectedReasons[allocation.id];
     if (reason === "Diğer") {
-      reason = otherReasons[id]?.trim();
+      reason = otherReasons[allocation.id]?.trim();
     }
 
-    if (!reason) {
-      return alert("Lütfen iade nedeni seçin veya girin.");
-    }
+    if (!reason) return alert("Lütfen iade nedeni seçin veya girin.");
 
     try {
       const res = await axios.post(
         "http://localhost:5000/api/allocations/return",
-        { allocationId: id, return_reason: reason },
+        { allocationId: allocation.id, return_reason: reason },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (res.status === 200) {
-        // Aktif listeden çıkar
-        setActiveCards((prev) => prev.filter((card) => card.id !== id));
-        // İade listesine ekle
-        setReturnedCards((prev) => [...prev, res.data]);
+        // Aktif hatlardan kaldır
+        setActiveCards((prev) => prev.filter((card) => card.id !== allocation.id));
+        // İade edilmiş hatlara ekle
+        setReturnedCards((prev) => [...prev, res.data.allocation]);
 
-        setSelectedReasons((prev) => ({ ...prev, [id]: "" }));
-        setOtherReasons((prev) => ({ ...prev, [id]: "" }));
-        alert("Tahsis iade edildi!");
+        setSelectedReasons((prev) => ({ ...prev, [allocation.id]: "" }));
+        setOtherReasons((prev) => ({ ...prev, [allocation.id]: "" }));
       }
     } catch (err) {
       console.error(err);
@@ -91,7 +96,15 @@ function ReturnedSimCards() {
     }
   };
 
-  const filteredCards = activeCards.filter(
+  const filteredActive = activeCards.filter(
+    (card) =>
+      card.SimCard?.phone_number?.includes(searchTerm) ||
+      card.Customer?.company_name
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase())
+  );
+
+  const filteredReturned = returnedCards.filter(
     (card) =>
       card.SimCard?.phone_number?.includes(searchTerm) ||
       card.Customer?.company_name
@@ -124,7 +137,7 @@ function ReturnedSimCards() {
             fontSize: "1.25rem",
           }}
         >
-          Aktif Hatlar (İade İçin)
+          Aktif Hatlar
         </div>
         <div className="card-body">
           <div className="mb-3">
@@ -146,15 +159,15 @@ function ReturnedSimCards() {
               </tr>
             </thead>
             <tbody>
-              {filteredCards.length === 0 ? (
+              {filteredActive.length === 0 ? (
                 <tr>
                   <td colSpan="4" className="text-center text-muted py-4">
                     Aktif hat bulunamadı.
                   </td>
                 </tr>
               ) : (
-                filteredCards.map((card) => (
-                  <tr key={card.id}>
+                filteredActive.map((card) => (
+                  <tr key={card.id} style={{ cursor: "default" }}>
                     <td>{card.SimCard?.phone_number || "-"}</td>
                     <td>{card.Customer?.company_name || "-"}</td>
                     <td>
@@ -193,7 +206,7 @@ function ReturnedSimCards() {
                     <td>
                       <button
                         className="btn btn-info btn-sm"
-                        onClick={() => handleReturn(card.id)}
+                        onClick={() => handleReturn(card)}
                       >
                         İade Et
                       </button>
@@ -206,49 +219,45 @@ function ReturnedSimCards() {
         </div>
       </div>
 
-      {/* İade Edilen Hatlar */}
+      {/* İade Edilmiş Hatlar */}
       <div className="card shadow-sm rounded">
         <div
           className="card-header text-white"
           style={{
-            background: "linear-gradient(90deg, #6c757d 0%, #495057 100%)",
+            background: "linear-gradient(90deg, #5cb85c 0%, #4cae4c 100%)",
             fontWeight: 600,
             fontSize: "1.25rem",
           }}
         >
-          İade Edilen Hatlar
+          İade Edilmiş Hatlar
         </div>
         <div className="card-body">
-          <table className="table table-hover mb-0">
-            <thead className="text-secondary" style={{ backgroundColor: "#f8f9fa" }}>
-              <tr>
-                <th>Numara</th>
-                <th>Müşteri / Bayi</th>
-                <th>Durum</th>
-              </tr>
-            </thead>
-            <tbody>
-              {returnedCards.length === 0 ? (
+          {filteredReturned.length === 0 ? (
+            <div className="text-center text-muted py-4">
+              İade edilmiş hat bulunamadı.
+            </div>
+          ) : (
+            <table className="table table-hover mb-0">
+              <thead className="text-success" style={{ backgroundColor: "#dff0d8" }}>
                 <tr>
-                  <td colSpan="3" className="text-center text-muted py-4">
-                    Henüz iade edilen hat yok.
-                  </td>
+                  <th>Numara</th>
+                  <th>Müşteri / Bayi</th>
+                  <th>İade Nedeni</th>
+                  <th>İade Tarihi</th>
                 </tr>
-              ) : (
-                returnedCards.map((card) => (
-                  <tr key={card.id}>
+              </thead>
+              <tbody>
+                {filteredReturned.map((card) => (
+                  <tr key={card.id} style={{ cursor: "default" }}>
                     <td>{card.SimCard?.phone_number || "-"}</td>
                     <td>{card.Customer?.company_name || "-"}</td>
-                    <td>
-                      <span className="badge bg-secondary">
-                        {card.SimCard?.status || "stok"}
-                      </span>
-                    </td>
+                    <td>{card.return_reason || "-"}</td>
+                    <td>{card.returned_at ? new Date(card.returned_at).toLocaleDateString() : "-"}</td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>
