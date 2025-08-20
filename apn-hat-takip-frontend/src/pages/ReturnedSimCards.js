@@ -31,26 +31,23 @@ function ReturnedSimCards() {
 
     const fetchData = async () => {
       try {
-        // Aktif hatlar
         const activeRes = await axios.get(
           "http://localhost:5000/api/allocations?status=aktif",
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        // İade edilmiş hatlar
         const returnedRes = await axios.get(
           "http://localhost:5000/api/allocations/returns",
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        // Üstteki aktif listeden iade edilmiş olanları çıkart
+        // Aktif listeden iade edilmiş olanları çıkar
         const activeFiltered = activeRes.data.filter(
           (a) => !returnedRes.data.some((r) => r.id === a.id)
         );
 
         setActiveCards(activeFiltered);
         setReturnedCards(returnedRes.data);
-
       } catch (err) {
         console.error(err);
         setError("Veriler çekilemedi.");
@@ -62,6 +59,7 @@ function ReturnedSimCards() {
     fetchData();
   }, [token]);
 
+  // --- Hat iade et ---
   const handleReturn = async (allocation) => {
     let reason = selectedReasons[allocation.id];
     if (reason === "Diğer") {
@@ -78,9 +76,7 @@ function ReturnedSimCards() {
       );
 
       if (res.status === 200) {
-        // Aktif hatlardan kaldır
         setActiveCards((prev) => prev.filter((card) => card.id !== allocation.id));
-        // İade edilmiş hatlara ekle
         setReturnedCards((prev) => [...prev, res.data.allocation]);
 
         setSelectedReasons((prev) => ({ ...prev, [allocation.id]: "" }));
@@ -88,11 +84,28 @@ function ReturnedSimCards() {
       }
     } catch (err) {
       console.error(err);
-      if (err.response?.data?.error) {
-        alert("Hata: " + err.response.data.error);
-      } else {
-        alert("İade işlemi sırasında hata oluştu.");
+      alert(err.response?.data?.error || "İade işlemi sırasında hata oluştu.");
+    }
+  };
+
+  // --- İade edilmiş hattı tekrar aktif et ---
+  const handleActivate = async (allocation) => {
+    try {
+      const res = await axios.put(
+        `http://localhost:5000/api/allocations/${allocation.id}`,
+        { status: "aktif" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (res.status === 200) {
+        setReturnedCards((prev) =>
+          prev.filter((card) => card.id !== allocation.id)
+        );
+        setActiveCards((prev) => [...prev, res.data]);
       }
+    } catch (err) {
+      console.error(err);
+      alert("Hat tekrar aktif edilirken hata oluştu.");
     }
   };
 
@@ -183,9 +196,7 @@ function ReturnedSimCards() {
                       >
                         <option value="">Seçiniz</option>
                         {reasons.map((r) => (
-                          <option key={r} value={r}>
-                            {r}
-                          </option>
+                          <option key={r} value={r}>{r}</option>
                         ))}
                       </select>
                       {selectedReasons[card.id] === "Diğer" && (
@@ -244,6 +255,7 @@ function ReturnedSimCards() {
                   <th>Müşteri / Bayi</th>
                   <th>İade Nedeni</th>
                   <th>İade Tarihi</th>
+                  <th>İşlem</th>
                 </tr>
               </thead>
               <tbody>
@@ -253,6 +265,14 @@ function ReturnedSimCards() {
                     <td>{card.Customer?.company_name || "-"}</td>
                     <td>{card.return_reason || "-"}</td>
                     <td>{card.returned_at ? new Date(card.returned_at).toLocaleDateString() : "-"}</td>
+                    <td>
+                      <button
+                        className="btn btn-warning btn-sm"
+                        onClick={() => handleActivate(card)}
+                      >
+                        Tekrar Aktif Et
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

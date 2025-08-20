@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { getCustomers, getSimCards, createAllocation } from "../services/api";
+import { getCustomers, getSimCards, createAllocation, getOperators } from "../services/api";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 function HatTahsisForm() {
   const [customers, setCustomers] = useState([]);
   const [simCards, setSimCards] = useState([]);
+  const [operators, setOperators] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   const [form, setForm] = useState({
     customer_id: "",
     sim_card_id: "",
+    operator_id: "", // <-- Yeni alan eklendi
     ip_address: "",
     has_static_ip: false,
     installation_location: "",
@@ -28,8 +30,10 @@ function HatTahsisForm() {
         setLoading(true);
         const customersData = await getCustomers();
         const simData = await getSimCards("stok"); // Sadece stokta olanlar
+        const operatorsData = await getOperators(); // Operatörleri çek
         setCustomers(customersData || []);
         setSimCards(simData || []);
+        setOperators(operatorsData || []);
       } catch (err) {
         setError("Veri yüklenirken hata oluştu.");
       } finally {
@@ -64,14 +68,15 @@ function HatTahsisForm() {
         ...form,
         customer_id: Number(form.customer_id),
         sim_card_id: Number(form.sim_card_id),
+        operator_id: form.operator_id ? Number(form.operator_id) : null, // boş bırakılabilir
       });
 
       setSuccess("Tahsis işlemi başarılı! Sim kart artık aktif.");
 
-      // Formu sıfırla
       setForm({
         customer_id: "",
         sim_card_id: "",
+        operator_id: "", // reset
         ip_address: "",
         has_static_ip: false,
         installation_location: "",
@@ -80,10 +85,8 @@ function HatTahsisForm() {
         allocation_date: "",
       });
 
-      // Stokta olan sim kart listesini güncelle
       const simData = await getSimCards("stok");
       setSimCards(simData || []);
-
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.error || "Tahsis sırasında hata oluştu.");
@@ -107,11 +110,7 @@ function HatTahsisForm() {
             <label className="form-label">Müşteri / Bayi *</label>
             <select className="form-select bg-dark text-white" name="customer_id" value={form.customer_id} onChange={handleChange} required>
               <option value="">Seçiniz</option>
-              {customers.map(c => (
-                <option key={c.id} value={c.id}>
-                  {c.company_name || c.contact_person || "Bilinmeyen Müşteri"}
-                </option>
-              ))}
+              {customers.map(c => <option key={c.id} value={c.id}>{c.company_name || c.contact_person}</option>)}
             </select>
           </div>
 
@@ -120,11 +119,16 @@ function HatTahsisForm() {
             <label className="form-label">Hat (Stokta Olan) *</label>
             <select className="form-select bg-dark text-white" name="sim_card_id" value={form.sim_card_id} onChange={handleChange} required>
               <option value="">Seçiniz</option>
-              {simCards.map(s => (
-                <option key={s.id} value={s.id}>
-                  {s.phone_number || "Bilinmeyen Numara"}
-                </option>
-              ))}
+              {simCards.map(s => <option key={s.id} value={s.id}>{s.phone_number}</option>)}
+            </select>
+          </div>
+
+          {/* Operator select */}
+          <div className="col-md-6">
+            <label className="form-label">Operator</label>
+            <select className="form-select bg-dark text-white" name="operator_id" value={form.operator_id} onChange={handleChange}>
+              <option value="">Seçiniz</option>
+              {operators.map(op => <option key={op.id} value={op.id}>{op.name}</option>)}
             </select>
           </div>
 
