@@ -1,7 +1,7 @@
 const { Allocation, SimCard, Customer, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
-// --- Tüm aktif tahsisleri getir (son duruma göre) ---
+// --- Tüm aktif tahsisleri getir ---
 exports.getAll = async (req, res) => {
   try {
     const lastAllocations = await Allocation.findAll({
@@ -41,7 +41,10 @@ exports.getReturns = async (req, res) => {
       }
     });
 
-    const returnAllocations = lastAllocations.filter(a => a.status === 'iade');
+    const returnAllocations = lastAllocations.filter(
+      a => a.status && a.status.toLowerCase() === 'iade'
+    );
+
     res.json(returnAllocations);
   } catch (err) {
     console.error('getReturns allocation error:', err);
@@ -67,10 +70,23 @@ exports.getById = async (req, res) => {
 
 // --- Yeni tahsis oluştur ---
 exports.create = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
-    const allocation = await Allocation.create(req.body);
+    const allocation = await Allocation.create(req.body, { transaction: t });
+
+    // Sim kartın operator_id ve durumunu güncelle
+    const simCard = await SimCard.findByPk(req.body.sim_card_id, { transaction: t });
+    if (simCard) {
+      await simCard.update(
+        { operator_id: req.body.operator_id, status: 'aktif' },
+        { transaction: t }
+      );
+    }
+
+    await t.commit();
     res.status(201).json(allocation);
   } catch (err) {
+    await t.rollback();
     console.error('create allocation error:', err);
     res.status(500).json({ error: 'Sunucuda hata oluştu' });
   }
@@ -78,13 +94,25 @@ exports.create = async (req, res) => {
 
 // --- Tahsis güncelle ---
 exports.update = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
-    const allocation = await Allocation.findByPk(req.params.id);
+    const allocation = await Allocation.findByPk(req.params.id, { transaction: t });
     if (!allocation) return res.status(404).json({ error: 'Tahsis bulunamadı' });
 
-    await allocation.update(req.body);
+    await allocation.update(req.body, { transaction: t });
+
+    // Sim kartın operator_id güncelle (opsiyonel: operator değişmişse)
+    if (req.body.operator_id) {
+      const simCard = await SimCard.findByPk(allocation.sim_card_id, { transaction: t });
+      if (simCard) {
+        await simCard.update({ operator_id: req.body.operator_id }, { transaction: t });
+      }
+    }
+
+    await t.commit();
     res.json(allocation);
   } catch (err) {
+    await t.rollback();
     console.error('update allocation error:', err);
     res.status(500).json({ error: 'Sunucuda hata oluştu' });
   }
@@ -111,24 +139,27 @@ exports.returnAllocation = async (req, res) => {
   if (!return_reason)
     return res.status(400).json({ error: 'İade nedeni girilmesi zorunludur.' });
 
+  const t = await sequelize.transaction();
   try {
-    const allocation = await Allocation.findByPk(allocationId);
+    const allocation = await Allocation.findByPk(allocationId, { transaction: t });
     if (!allocation) return res.status(404).json({ error: 'Tahsis bulunamadı' });
     if (allocation.status !== 'aktif') {
       return res.status(400).json({ error: 'Sadece aktif tahsisler iade edilebilir.' });
     }
 
-    await sequelize.transaction(async (t) => {
-      await allocation.update(
-        { status: 'iade', return_reason, returned_at: new Date() },
-        { transaction: t }
-      );
+    // Allocation durumu 'iade' olarak güncelle
+    await allocation.update(
+      { status: 'iade', return_reason, returned_at: new Date() },
+      { transaction: t }
+    );
 
-      const simCard = await SimCard.findByPk(allocation.sim_card_id, { transaction: t });
-      if (simCard) await simCard.update({ status: 'stok' }, { transaction: t });
-    });
+    // Sim kart durumu 'stok' ve operator_id temizlenebilir
+    const simCard = await SimCard.findByPk(allocation.sim_card_id, { transaction: t });
+    if (simCard) await simCard.update({ status: 'stok', operator_id: null }, { transaction: t });
 
-    // Son tahsis kaydını gönder
+    await t.commit();
+
+    // Son tahsis kaydını döndür (iade arşivi için)
     const lastAllocation = await Allocation.findOne({
       where: { sim_card_id: allocation.sim_card_id },
       include: [SimCard, Customer],
@@ -137,6 +168,7 @@ exports.returnAllocation = async (req, res) => {
 
     res.json({ message: 'Tahsis iade edildi', allocation: lastAllocation });
   } catch (err) {
+    await t.rollback();
     console.error('returnAllocation error:', err);
     res.status(500).json({ error: 'Sunucuda hata oluştu' });
   }

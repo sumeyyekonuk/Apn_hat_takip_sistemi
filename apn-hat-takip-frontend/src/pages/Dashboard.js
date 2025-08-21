@@ -16,9 +16,8 @@ import {
   getSimCards,
   getAllocations,
   getOperatorDistributionFromAllocations,
+  getAllocationsReturns,
 } from "../services/api";
-
-import "../styles/Dashboard.css";
 
 Chart.register(
   ArcElement,
@@ -30,6 +29,22 @@ Chart.register(
   LineElement,
   BarElement
 );
+
+const cardColors = {
+  toplam: "#a2d5f2",
+  aktif: "#63cdda",
+  stok: "#f7a072",
+  iade: "#f2709c",
+  tahsis: "#ffb74d",
+};
+
+function getColorArray(baseColors, count) {
+  const arr = [];
+  for (let i = 0; i < count; i++) {
+    arr.push(baseColors[i % baseColors.length]);
+  }
+  return arr;
+}
 
 function Dashboard() {
   const [simCards, setSimCards] = useState([]);
@@ -46,62 +61,56 @@ function Dashboard() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) return; // login yoksa API çağrılarını engelle
+    if (!token) return;
 
-    // Toplam sim kart ve paket tipi
     getSimCards()
       .then((data) => {
         setSimCards(data);
-
         const packageCounts = {};
         data.forEach((card) => {
           const packageName = card.Package?.name || "Bilinmeyen";
           packageCounts[packageName] = (packageCounts[packageName] || 0) + 1;
         });
-
+        const labels = Object.keys(packageCounts);
+        const counts = Object.values(packageCounts);
         setPackageTypeDistributionData({
-          labels: Object.keys(packageCounts),
+          labels,
           datasets: [
             {
               label: "Paket Tipi Dağılımı",
-              data: Object.values(packageCounts),
-              backgroundColor: Object.keys(packageCounts).map(
-                (_, i) => `hsl(${(i * 60) % 360}, 70%, 75%)`
+              data: counts,
+              backgroundColor: getColorArray(
+                [cardColors.toplam, cardColors.aktif, cardColors.stok, cardColors.iade, cardColors.tahsis],
+                labels.length
               ),
-              borderColor: Object.keys(packageCounts).map(
-                (_, i) => `hsl(${(i * 60) % 360}, 70%, 65%)`
-              ),
-              borderWidth: 1,
-              borderRadius: 8,
-              barPercentage: 0.8,
-              categoryPercentage: 0.7,
+              borderRadius: 6,
             },
           ],
         });
       })
       .catch(console.error);
 
-    // Operatör bazlı dağılım
     getOperatorDistributionFromAllocations()
       .then((data) => {
-        if (!data || !data.length) return; // veri yoksa işlem yapma
+        if (!data || !data.length) return;
         const labels = data.map((item) => item.operator);
         const counts = data.map((item) => item.count);
-
         setOperatorDistributionData({
           labels,
           datasets: [
             {
               label: "Operatör Bazlı Hat Sayısı",
               data: counts,
-              backgroundColor: labels.map(
-                (_, i) => `hsl(${(i * 60) % 360}, 70%, 50%)`
+              backgroundColor: getColorArray(
+                [cardColors.toplam, cardColors.aktif, cardColors.stok, cardColors.iade, cardColors.tahsis],
+                labels.length
               ),
-              hoverOffset: 30,
+              borderColor: "#fff",
+              borderWidth: 2,
+              hoverOffset: 20,
             },
           ],
         });
-
         setLoadingOperator(false);
       })
       .catch((err) => {
@@ -109,29 +118,23 @@ function Dashboard() {
         setLoadingOperator(false);
       });
 
-    // Tahsisler ve aylık trend
     getAllocations()
       .then((data) => {
         setAllocations(data);
-
         const monthLabels = [];
         const monthData = [];
         const today = new Date();
-
         for (let i = 5; i >= 0; i--) {
           const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
           monthLabels.push(
             d.toLocaleString("default", { month: "short", year: "numeric" })
           );
-
           const count = data.filter((a) => {
             const date = new Date(a.allocation_date);
             return date.getMonth() === d.getMonth() && date.getFullYear() === d.getFullYear();
           }).length;
-
           monthData.push(count);
         }
-
         setMonthlyAllocationTrendData({
           labels: monthLabels,
           datasets: [
@@ -139,18 +142,19 @@ function Dashboard() {
               label: "Aylık Tahsis Trendi",
               data: monthData,
               fill: false,
-              borderColor: "rgba(75,192,192,1)",
-              tension: 0.3,
+              borderColor: cardColors.tahsis,
+              backgroundColor: cardColors.tahsis,
+              tension: 0.4,
+              borderWidth: 3,
+              pointRadius: 4,
             },
           ],
         });
-
         setLoadingAllocations(false);
       })
       .catch(console.error);
 
-    // İadeler
-    getSimCards("iade")
+    getAllocationsReturns()
       .then((data) => {
         setReturnedSimCards(data);
         setLoadingReturns(false);
@@ -161,156 +165,172 @@ function Dashboard() {
   const aktifHat = simCards.filter((card) => card.status === "aktif").length;
   const stokHat = simCards.filter((card) => card.status === "stok").length;
   const iadeHat = returnedSimCards.length;
-
   const thisMonth = new Date().getMonth();
   const thisYear = new Date().getFullYear();
   const thisMonthAllocations = allocations.filter((allocation) => {
     const date = new Date(allocation.allocation_date);
     return date.getMonth() === thisMonth && date.getFullYear() === thisYear;
   });
-
   const recentAllocations = allocations.slice(-5).reverse();
   const recentReturns = returnedSimCards.slice(-5).reverse();
 
   return (
-    <div className="dashboard-container">
-      <h2 className="dashboard-title">
-        <span className="home-icon" role="img" aria-label="home">🏠</span>
-        Hat Takip Sistemi 
+    <div style={{ padding: "10px 20px 20px 20px", fontFamily: "Inter, sans-serif", background: "#f5f7fa", minHeight: "100vh" }}>
+      <h2 style={{ margin: "0 0 20px 0", fontSize: "20px", fontWeight: 600, color: "#333" }}>
+        <span role="img" aria-label="home">🏠</span> Hat Takip Sistemi
       </h2>
 
-      <div className="dashboard-cards-row">
-        <div className="dashboard-card bg-toplam">
-          <div className="stat-number">{simCards.length}</div>
-          <div className="stat-label">Toplam Hat</div>
-        </div>
-
-        <div className="dashboard-card bg-aktif">
-          <div className="stat-number">{aktifHat}</div>
-          <div className="stat-label">Aktif Hatlar</div>
-        </div>
-
-        <div className="dashboard-card bg-stok">
-          <div className="stat-number">{stokHat}</div>
-          <div className="stat-label">Stokta Bekleyen Hatlar</div>
-        </div>
-
-        <div className="dashboard-card bg-iade">
-          <div className="stat-number">{iadeHat}</div>
-          <div className="stat-label">İade Alınan Hatlar</div>
-        </div>
-
-        <div className="dashboard-card bg-tahsis">
-          <div className="stat-number">{thisMonthAllocations.length}</div>
-          <div className="stat-label">Bu Ay Tahsis Edilenler</div>
-        </div>
+      {/* Özet kartlar */}
+      <div style={{ display: "flex", gap: "20px", flexWrap: "wrap", marginBottom: "25px" }}>
+        {[ 
+          { label: "Toplam Hat", value: simCards.length, color: cardColors.toplam },
+          { label: "Aktif Hatlar", value: aktifHat, color: cardColors.aktif },
+          { label: "Stokta Bekleyen Hatlar", value: stokHat, color: cardColors.stok },
+          { label: "İade Alınan Hatlar", value: iadeHat, color: cardColors.iade },
+          { label: "Bu Ay Tahsis Edilenler", value: thisMonthAllocations.length, color: cardColors.tahsis },
+        ].map((card) => (
+          <div key={card.label} style={{
+            flex: "1 1 140px",
+            minHeight: "130px",
+            padding: "25px 20px",
+            background: card.color,
+            borderRadius: "12px",
+            color: "#fff",
+            textAlign: "center",
+            boxShadow: "0 6px 14px rgba(0,0,0,0.12)"
+          }}>
+            <div style={{ fontSize: "32px", fontWeight: 700 }}>{card.value}</div>
+            <div style={{ fontSize: "14px", marginTop: "6px", fontWeight: 600 }}>{card.label}</div>
+          </div>
+        ))}
       </div>
 
-      <div className="dashboard-graphs">
-        <section className="graph-section">
-          <h4>Operatör Bazlı Dağılım (Pasta Grafik)</h4>
-          {loadingOperator ? <div>Yükleniyor...</div> : (
-            operatorDistributionData ? 
-            <Pie data={operatorDistributionData} options={{ maintainAspectRatio: false }} height={250} width={250} /> :
-            <div>Veri yok</div>
-          )}
-        </section>
-
-        <section className="graph-section">
-          <h4>Aylık Tahsis Trendi (Çizgi Grafik)</h4>
-          {loadingAllocations ? <div>Yükleniyor...</div> : (
-            monthlyAllocationTrendData ?
-            <Line data={monthlyAllocationTrendData} options={{ maintainAspectRatio: false }} height={250} width={400} /> :
-            <div>Veri yok</div>
-          )}
-        </section>
-
-        <section className="graph-section">
-          <h4>Paket Tipi Dağılımı (Bar Grafik)</h4>
-          {packageTypeDistributionData ? (
-            <Bar
-              data={packageTypeDistributionData}
-              options={{
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    position: "bottom",
-                    labels: { color: "#333", font: { size: 14 } },
-                  },
-                },
-                scales: {
-                  x: { ticks: { color: "#333", font: { size: 13 } }, grid: { display: false } },
-                  y: { ticks: { color: "#333", font: { size: 13 }, stepSize: 1 }, grid: { color: "rgba(0,0,0,0.05)" } },
-                },
-              }}
-              height={250}
-              width={400}
-            />
-          ) : (
-            <div>Yükleniyor...</div>
-          )}
-        </section>
+      {/* Grafikler */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px", justifyContent: "space-between", marginBottom: "20px" }}>
+        {[
+          { title: "Operatör Bazlı Dağılım", chart: operatorDistributionData, loading: loadingOperator, type: "pie" },
+          { title: "Aylık Tahsis Trendi", chart: monthlyAllocationTrendData, loading: loadingAllocations, type: "line" },
+          { title: "Paket Tipi Dağılımı", chart: packageTypeDistributionData, loading: !packageTypeDistributionData, type: "bar" },
+        ].map((g, idx) => (
+          <div key={idx} style={{
+            flex: "1 1 320px",
+            maxHeight: "360px",
+            height: "360px",
+            padding: "10px",
+            background: "#fff",
+            borderRadius: "10px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+            overflow: "hidden"
+          }}>
+            <h4 style={{ fontSize: "14px", fontWeight: 600, marginBottom: "10px", color: "#333" }}>{g.title}</h4>
+            {g.loading ? <div>Yükleniyor...</div> : (
+              g.chart ? (
+                g.type === "pie" ? (
+                  <Pie 
+                    data={g.chart} 
+                    options={{
+                      maintainAspectRatio: false,
+                      cutout: 50,
+                      plugins: { legend: { position: "bottom", labels: { font: { size: 12 }, boxWidth: 20 } } },
+                      layout: { padding: { bottom: 20 } }
+                    }} 
+                    height={360} 
+                  />
+                ) : g.type === "line" ? (
+                  <Line 
+                    data={g.chart} 
+                    options={{
+                      maintainAspectRatio: true,
+                      aspectRatio: 1.2,
+                      plugins: { legend: { position: "bottom", labels: { font: { size: 12 }, boxWidth: 20 } } },
+                      scales: {
+                        y: { ticks: { stepSize: 1, font: { size: 12 } }, grid: { color: "rgba(0,0,0,0.05)" } },
+                        x: { ticks: { font: { size: 12 } }, grid: { display: false } }
+                      },
+                      layout: { padding: { bottom: 20 } }
+                    }} 
+                    height={360} 
+                  />
+                ) : (
+                  <Bar 
+                    data={g.chart} 
+                    options={{
+                      maintainAspectRatio: true,
+                      aspectRatio: 1.2,
+                      plugins: { legend: { position: "bottom", labels: { font: { size: 12 }, boxWidth: 20 } } },
+                      scales: {
+                        y: { ticks: { stepSize: 1, font: { size: 12 } }, grid: { color: "rgba(0,0,0,0.05)" } },
+                        x: { ticks: { font: { size: 12 } }, grid: { display: false } }
+                      },
+                      layout: { padding: { bottom: 20 } }
+                    }} 
+                    height={360} 
+                  />
+                )
+              ) : <div>Veri yok</div>
+            )}
+          </div>
+        ))}
       </div>
 
-      <div className="recent-actions">
-        <div className="table-container">
-          <h5>Son Tahsisler</h5>
-          {loadingAllocations ? (
-            <div className="spinner">Yükleniyor...</div>
-          ) : recentAllocations.length ? (
-            <table>
+      {/* Son tahsisler ve iadeler */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+        <div style={{
+          flex: "1 1 400px",
+          background: "#fff",
+          padding: "15px",
+          borderRadius: "10px",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
+        }}>
+          <h5 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "10px", color: "#333" }}>Son Tahsisler</h5>
+          {loadingAllocations ? <div>Yükleniyor...</div> : recentAllocations.length ? (
+            <table style={{ width: "100%", fontSize: "13px", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Müşteri</th>
-                  <th>Hat Numarası</th>
-                  <th>Tahsis Tarihi</th>
+                  <th>ID</th><th>Müşteri</th><th>Hat Numarası</th><th>Tahsis Tarihi</th>
                 </tr>
               </thead>
               <tbody>
                 {recentAllocations.map((a) => (
                   <tr key={a.id}>
                     <td>{a.id}</td>
-                    <td>{a.Customer?.company_name || "Belirtilmemiş"}</td>
-                    <td>{a.SimCard?.phone_number || "Belirtilmemiş"}</td>
+                    <td>{a.Customer?.company_name || "-"}</td>
+                    <td>{a.SimCard?.phone_number || "-"}</td>
                     <td>{new Date(a.allocation_date).toLocaleDateString()}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          ) : (
-            <p>Gösterilecek tahsis işlemi yok.</p>
-          )}
+          ) : <p>Gösterilecek tahsis işlemi yok.</p>}
         </div>
 
-        <div className="table-container">
-          <h5>Son İadeler</h5>
-          {loadingReturns ? (
-            <div className="spinner">Yükleniyor...</div>
-          ) : recentReturns.length ? (
-            <table>
+        <div style={{
+          flex: "1 1 400px",
+          background: "#fff",
+          padding: "15px",
+          borderRadius: "10px",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
+        }}>
+          <h5 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "10px", color: "#333" }}>Son İadeler</h5>
+          {loadingReturns ? <div>Yükleniyor...</div> : recentReturns.length ? (
+            <table style={{ width: "100%", fontSize: "13px", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Müşteri</th>
-                  <th>Hat Numarası</th>
-                  <th>İade Tarihi</th>
+                  <th>ID</th><th>Müşteri</th><th>Hat Numarası</th><th>İade Tarihi</th>
                 </tr>
               </thead>
               <tbody>
                 {recentReturns.map((r) => (
                   <tr key={r.id}>
                     <td>{r.id}</td>
-                    <td>{r.Allocations?.[0]?.Customer?.company_name || "Belirtilmemiş"}</td>
-                    <td>{r.phone_number || "Belirtilmemiş"}</td>
-                    <td>{new Date(r.Allocations?.[0]?.allocation_date || r.purchase_date).toLocaleDateString()}</td>
+                    <td>{r.Customer?.company_name || "-"}</td>
+                    <td>{r.SimCard?.phone_number || "-"}</td>
+                    <td>{r.returned_at ? new Date(r.returned_at).toLocaleDateString() : "-"}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          ) : (
-            <p>Gösterilecek iade işlemi yok.</p>
-          )}
+          ) : <p>Gösterilecek iade işlemi yok.</p>}
         </div>
       </div>
     </div>

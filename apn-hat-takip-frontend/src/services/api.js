@@ -115,6 +115,17 @@ export async function createAllocation(data) {
   return handleResponse(res, "Tahsis oluşturulamadı");
 }
 
+// ✅ Yeni eklenecek: Tahsis iade etme
+export async function returnAllocation(data) {
+  if (!data.allocation_id || !data.reason) throw new Error("Allocation ID ve iade sebebi zorunludur.");
+  const res = await fetch(`${API_URL}/allocations/return`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getAuthHeader() },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(res, "Tahsis iade edilemedi");
+}
+
 // --- Auth ---
 export async function login(credentials) {
   const res = await fetch(`${API_URL}/auth/login`, {
