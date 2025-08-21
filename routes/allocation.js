@@ -29,9 +29,6 @@ router.put('/:id', auth(['admin', 'user']), allocationsController.update);
 router.delete('/:id', auth(['admin']), allocationsController.remove);
 
 // --- Tahsis iade et (admin ve user) ---
-router.post('/return', auth(['admin', 'user']), (req, res, next) => {
-  console.log('RETURN ROUTE HIT'); // <-- Post isteği terminale loglanacak
-  next();
-}, allocationsController.returnAllocation);
+router.post('/return', auth(['admin', 'user']), allocationsController.returnAllocation);
 
 module.exports = router;
