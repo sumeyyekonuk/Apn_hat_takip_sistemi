@@ -22,6 +22,7 @@ function ReturnedSimCards() {
 
   const token = localStorage.getItem("token");
 
+  // --- Veri çekme fonksiyonu ---
   const fetchData = async () => {
     if (!token) {
       setError("Lütfen giriş yapın.");
@@ -30,12 +31,18 @@ function ReturnedSimCards() {
     }
 
     try {
-      const res = await axios.get("http://localhost:5000/api/allocations", {
+      // Aktif tahsisler
+      const activeRes = await axios.get("http://localhost:5000/api/allocations", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setActiveCards(res.data.filter((a) => a.status === "aktif"));
-      setReturnedCards(res.data.filter((a) => a.status === "iade"));
+      // İade edilmiş tahsisler
+      const returnedRes = await axios.get("http://localhost:5000/api/allocations/returns", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setActiveCards(activeRes.data);
+      setReturnedCards(returnedRes.data);
     } catch (err) {
       console.error(err);
       setError("Veriler çekilemedi.");
@@ -48,6 +55,7 @@ function ReturnedSimCards() {
     fetchData();
   }, [token]);
 
+  // --- İade etme fonksiyonu ---
   const handleReturn = async (allocation) => {
     let reason = selectedReasons[allocation.id];
     if (reason === "Diğer") reason = otherReasons[allocation.id]?.trim();
@@ -62,7 +70,6 @@ function ReturnedSimCards() {
 
       if (res.status === 200) {
         fetchData(); // iade sonrası veriyi tekrar çek
-
         setSelectedReasons((prev) => ({ ...prev, [allocation.id]: "" }));
         setOtherReasons((prev) => ({ ...prev, [allocation.id]: "" }));
       }
@@ -167,7 +174,10 @@ function ReturnedSimCards() {
                       )}
                     </td>
                     <td>
-                      <button className="btn btn-info btn-sm" onClick={() => handleReturn(card)}>
+                      <button
+                        className="btn btn-info btn-sm"
+                        onClick={() => handleReturn(card)}
+                      >
                         İade Et
                       </button>
                     </td>
@@ -210,7 +220,11 @@ function ReturnedSimCards() {
                     <td>{card.SimCard?.phone_number || "-"}</td>
                     <td>{card.Customer?.company_name || "-"}</td>
                     <td>{card.return_reason || "-"}</td>
-                    <td>{card.returned_at ? new Date(card.returned_at).toLocaleString() : "-"}</td>
+                    <td>
+                      {card.returned_at
+                        ? new Date(card.returned_at).toLocaleString()
+                        : "-"}
+                    </td>
                   </tr>
                 ))}
               </tbody>

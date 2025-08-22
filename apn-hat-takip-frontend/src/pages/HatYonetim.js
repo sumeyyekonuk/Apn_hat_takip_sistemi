@@ -4,10 +4,14 @@ import {
   createSimCard,
   updateSimCard,
   deleteSimCard,
+  getOperators,
+  getPackages,
 } from "../services/api";
 
 function HatYonetim() {
   const [simCards, setSimCards] = useState([]);
+  const [operators, setOperators] = useState([]);
+  const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [formError, setFormError] = useState("");
@@ -25,14 +29,20 @@ function HatYonetim() {
   });
 
   useEffect(() => {
-    loadSimCards();
+    loadData();
   }, []);
 
-  const loadSimCards = async () => {
+  const loadData = async () => {
     setLoading(true);
     try {
-      const sims = await getSimCards();
+      const [sims, ops, packs] = await Promise.all([
+        getSimCards(),
+        getOperators(),
+        getPackages(),
+      ]);
       setSimCards(sims);
+      setOperators(ops);
+      setPackages(packs);
       setLoading(false);
     } catch (err) {
       setError(err.message || "Bir hata oluştu");
@@ -52,9 +62,9 @@ function HatYonetim() {
     e.preventDefault();
     setFormError("");
 
-    // Backend için zorunlu alanları kontrol et
+    // Operator artık zorunlu
     if (!formData.phone_number || !formData.package_id || !formData.operator_id) {
-      setFormError("Telefon, Package ID ve Operator ID zorunludur.");
+      setFormError("Telefon, Package ve Operator seçimi zorunludur.");
       return;
     }
 
@@ -67,14 +77,14 @@ function HatYonetim() {
     if (editingSim) {
       updateSimCard(editingSim.id, payload)
         .then(() => {
-          loadSimCards();
+          loadData();
           closeModal();
         })
         .catch((err) => setFormError(err.message));
     } else {
       createSimCard(payload)
         .then(() => {
-          loadSimCards();
+          loadData();
           closeModal();
         })
         .catch((err) => setFormError(err.message));
@@ -99,7 +109,7 @@ function HatYonetim() {
 
   const handleDelete = (id) => {
     if (window.confirm("Bu hattı silmek istediğinize emin misiniz?")) {
-      deleteSimCard(id).then(() => loadSimCards());
+      deleteSimCard(id).then(() => loadData());
     }
   };
 
@@ -138,7 +148,7 @@ function HatYonetim() {
                 <th>Durum</th>
                 <th>IP Adresi</th>
                 <th>Statik IP</th>
-                <th>Operator</th>
+                <th>Operator ID</th>
                 <th>Yeniden Tahsis</th>
                 <th>İşlemler</th>
               </tr>
@@ -175,6 +185,7 @@ function HatYonetim() {
                 </div>
                 <div className="modal-body">
                   {formError && <div className="alert alert-danger">{formError}</div>}
+
                   <div className="mb-3">
                     <label className="form-label">Telefon Numarası</label>
                     <input
@@ -186,10 +197,17 @@ function HatYonetim() {
                       placeholder="Telefon numarası"
                     />
                   </div>
+
                   <div className="mb-3">
-                    <label className="form-label">Package ID</label>
-                    <input type="number" className="form-control" name="package_id" value={formData.package_id} onChange={handleChange} />
+                    <label className="form-label">Package</label>
+                    <select className="form-select" name="package_id" value={formData.package_id} onChange={handleChange}>
+                      <option value="">Seçiniz</option>
+                      {packages.map((p) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
                   </div>
+
                   <div className="mb-3">
                     <label className="form-label">Durum</label>
                     <select className="form-select" name="status" value={formData.status} onChange={handleChange}>
@@ -199,27 +217,38 @@ function HatYonetim() {
                       <option value="iade">İade</option>
                     </select>
                   </div>
+
                   <div className="mb-3">
                     <label className="form-label">IP Adresi</label>
                     <input type="text" className="form-control" name="ip_address" value={formData.ip_address} onChange={handleChange} />
                   </div>
+
                   <div className="form-check mb-3">
                     <input type="checkbox" className="form-check-input" name="has_static_ip" checked={formData.has_static_ip} onChange={handleChange} />
                     <label className="form-check-label">Statik IP</label>
                   </div>
+
                   <div className="mb-3">
-                    <label className="form-label">Operator ID</label>
-                    <input type="number" className="form-control" name="operator_id" value={formData.operator_id} onChange={handleChange} />
+                    <label className="form-label">Operator</label>
+                    <select className="form-select" name="operator_id" value={formData.operator_id} onChange={handleChange}>
+                      <option value="">Seçiniz</option>
+                      {operators.map((o) => (
+                        <option key={o.id} value={o.id}>{o.name}</option>
+                      ))}
+                    </select>
                   </div>
+
                   <div className="form-check mb-3">
                     <input type="checkbox" className="form-check-input" name="is_reallocated" checked={formData.is_reallocated} onChange={handleChange} />
                     <label className="form-check-label">Yeniden Tahsis Edildi</label>
                   </div>
+
                   <div className="mb-3">
                     <label className="form-label">Satın Alma Tarihi</label>
                     <input type="date" className="form-control" name="purchase_date" value={formData.purchase_date} onChange={handleChange} />
                   </div>
                 </div>
+
                 <div className="modal-footer">
                   <button type="button" className="btn btn-secondary" onClick={closeModal}>Kapat</button>
                   <button type="submit" className="btn btn-primary">Kaydet</button>

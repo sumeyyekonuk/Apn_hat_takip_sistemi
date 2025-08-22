@@ -25,7 +25,7 @@ exports.getAll = async (req, res) => {
   }
 };
 
-// --- İade edilmiş tahsisleri getir (son duruma göre) ---
+// --- İade edilmiş tahsisleri getir ---
 exports.getReturns = async (req, res) => {
   try {
     const lastAllocations = await Allocation.findAll({
@@ -41,10 +41,7 @@ exports.getReturns = async (req, res) => {
       }
     });
 
-    const returnAllocations = lastAllocations.filter(
-      a => a.status && a.status.toLowerCase() === 'iade'
-    );
-
+    const returnAllocations = lastAllocations.filter(a => a.status === 'iade');
     res.json(returnAllocations);
   } catch (err) {
     console.error('getReturns allocation error:', err);
@@ -159,7 +156,6 @@ exports.returnAllocation = async (req, res) => {
 
     await t.commit();
 
-    // Son tahsis kaydını döndür (iade arşivi için)
     const lastAllocation = await Allocation.findOne({
       where: { sim_card_id: allocation.sim_card_id },
       include: [SimCard, Customer],
