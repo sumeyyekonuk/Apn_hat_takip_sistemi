@@ -22,6 +22,13 @@ function Sidebar() {
           <li><NavLink to="/hat-yonetim" className={({ isActive }) => isActive ? "active" : ""}>Hat Yönetimi</NavLink></li>
           <li><NavLink to="/hat-tahsisi" className={({ isActive }) => isActive ? "active" : ""}>Hat Tahsisi</NavLink></li>
           <li><NavLink to="/returned-simcards" className={({ isActive }) => isActive ? "active" : ""}>İade İşlemleri</NavLink></li>
+          
+          {/* Yeni eklenen menü: Faturalar */}
+          <li>
+            <NavLink to="/invoices" className={({ isActive }) => isActive ? "active" : ""}>
+              Faturalar
+            </NavLink>
+          </li>
         </ul>
       </nav>
 

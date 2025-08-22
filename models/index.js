@@ -4,8 +4,8 @@ const SimCard = require('./sim_cards');
 const Customer = require('./customer');
 const Allocation = require('./allocations');
 const User = require('./user');
+const Invoice = require('./invoice'); // ✅ Yeni: Invoice modeli eklendi
 const sequelize = require('../config/database'); // ✅ gerçek instance
-
 
 // --- İlişkiler ---
 
@@ -33,6 +33,23 @@ Allocation.belongsTo(SimCard, { foreignKey: 'sim_card_id' });
 Operator.hasMany(Allocation, { foreignKey: 'operator_id' });
 Allocation.belongsTo(Operator, { foreignKey: 'operator_id' });
 
+// --- Yeni: Invoice ilişkileri ---
+// Invoice ↔ Allocation
+Allocation.hasMany(Invoice, { foreignKey: 'allocation_id' }); // ✅ ters ilişki eklendi
+Invoice.belongsTo(Allocation, { foreignKey: 'allocation_id' });
+
+// Invoice ↔ Customer
+Customer.hasMany(Invoice, { foreignKey: 'customer_id' }); // ✅ ters ilişki eklendi
+Invoice.belongsTo(Customer, { foreignKey: 'customer_id' });
+
+// Invoice ↔ SimCard
+SimCard.hasMany(Invoice, { foreignKey: 'sim_card_id' }); // ✅ ters ilişki eklendi
+Invoice.belongsTo(SimCard, { foreignKey: 'sim_card_id' });
+
+// Invoice ↔ Package
+Package.hasMany(Invoice, { foreignKey: 'package_id' }); // ✅ ters ilişki eklendi
+Invoice.belongsTo(Package, { foreignKey: 'package_id' });
+
 module.exports = {
   Operator,
   Package,
@@ -40,5 +57,6 @@ module.exports = {
   Customer,
   Allocation,
   User,
-  sequelize
+  Invoice, // ✅ exporta eklendi
+  sequelize
 };

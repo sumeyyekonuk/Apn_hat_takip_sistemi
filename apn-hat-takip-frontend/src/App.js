@@ -12,6 +12,8 @@ import HatTahsisForm from "./pages/HatTahsisForm";
 import ReturnedSimCards from "./pages/ReturnedSimCards";
 import Login from "./pages/Login"; // ✅ Login import edildi
 
+import Invoices from "./pages/Invoices"; // ✅ Yeni eklenen Faturalar sayfası import edildi
+
 // PrivateRoute bileşeni
 function PrivateRoute({ children }) {
   const token = localStorage.getItem("token");
@@ -49,6 +51,9 @@ function App() {
           <Route path="/hat-yonetim" element={<PrivateRoute><HatYonetim /></PrivateRoute>} />
           <Route path="/hat-tahsisi" element={<PrivateRoute><HatTahsisForm /></PrivateRoute>} />
           <Route path="/returned-simcards" element={<PrivateRoute><ReturnedSimCards /></PrivateRoute>} />
+
+          {/* ✅ Yeni eklenen Faturalar route'u */}
+          <Route path="/invoices" element={<PrivateRoute><Invoices /></PrivateRoute>} />
 
           {/* Tanımlanmayan sayfalar için yönlendirme */}
           <Route path="*" element={<Navigate to="/" replace />} />
