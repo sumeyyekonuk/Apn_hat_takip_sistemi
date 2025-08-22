@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import {
   getSimCards,
@@ -6,6 +5,15 @@ import {
   updateSimCard,
   deleteSimCard,
 } from "../services/api";
+
+// --- Dashboard renk paleti ---
+const cardColors = {
+  toplam: "#5bc0de", // üst çerçeve mavi tonu (Müşteriler ekranıyla aynı)
+  aktif: "#63cdda",
+  stok: "#f7a072",
+  iade: "#f2709c",
+  tahsis: "#ffb74d",
+};
 
 function HatYonetim() {
   const [simCards, setSimCards] = useState([]);
@@ -24,6 +32,10 @@ function HatYonetim() {
     is_reallocated: false,
     purchase_date: "",
   });
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [operatorFilter, setOperatorFilter] = useState("");
 
   useEffect(() => {
     loadSimCards();
@@ -53,7 +65,6 @@ function HatYonetim() {
     e.preventDefault();
     setFormError("");
 
-    // Backend için zorunlu alanları kontrol et
     if (!formData.phone_number || !formData.package_id || !formData.operator_id) {
       setFormError("Telefon, Package ID ve Operator ID zorunludur.");
       return;
@@ -65,21 +76,16 @@ function HatYonetim() {
       operator_id: Number(formData.operator_id),
     };
 
-    if (editingSim) {
-      updateSimCard(editingSim.id, payload)
-        .then(() => {
-          loadSimCards();
-          closeModal();
-        })
-        .catch((err) => setFormError(err.message));
-    } else {
-      createSimCard(payload)
-        .then(() => {
-          loadSimCards();
-          closeModal();
-        })
-        .catch((err) => setFormError(err.message));
-    }
+    const action = editingSim
+      ? updateSimCard(editingSim.id, payload)
+      : createSimCard(payload);
+
+    action
+      .then(() => {
+        loadSimCards();
+        closeModal();
+      })
+      .catch((err) => setFormError(err.message));
   };
 
   const handleEdit = (sim) => {
@@ -123,14 +129,82 @@ function HatYonetim() {
   if (loading) return <div>Yükleniyor...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
 
+  const filteredSimCards = simCards.filter((sim) => {
+    const matchesSearch = sim.phone_number.includes(searchTerm);
+    const matchesStatus = statusFilter === "all" || sim.status === statusFilter;
+    const matchesOperator = operatorFilter === "" || sim.operator_id?.toString() === operatorFilter;
+    return matchesSearch && matchesStatus && matchesOperator;
+  });
+
   return (
     <div className="container mt-4">
       <div className="card shadow rounded">
-        <div className="card-header d-flex justify-content-between align-items-center bg-info text-white">
+        {/* Üst çerçeve */}
+        <div
+          className="card-header d-flex justify-content-between align-items-center"
+          style={{
+            background: `linear-gradient(90deg, #5bc0de 0%, #31b0d5 100%)`,
+            color: "#fff",
+            fontSize: "1.25rem",
+            fontWeight: 600,
+          }}
+        >
           <span>📱 Sim Kart Yönetimi</span>
-          <button className="btn btn-light btn-sm" onClick={() => setShowModal(true)}>+ Yeni Hat</button>
+          {/* Yeni Hat Butonu */}
+          <button
+            className="btn btn-sm"
+            style={{
+              background: "#31b0d5", // belirgin mavi
+              color: "#fff",
+              fontWeight: 600,
+              borderRadius: "6px",
+              border: "none",
+              padding: "4px 12px",
+            }}
+            onClick={() => setShowModal(true)}
+          >
+            + Yeni Hat
+          </button>
         </div>
+
+        {/* Filtreleme ve Tablo */}
         <div className="card-body">
+          <div className="p-3 mb-3 border rounded shadow-sm bg-light">
+            <div className="row g-3">
+              <div className="col-md-4">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Telefon numarası ara..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="col-md-4">
+                <select
+                  className="form-select"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="all">Tüm Durumlar</option>
+                  <option value="stok">Stok</option>
+                  <option value="aktif">Aktif</option>
+                  <option value="iptal">İptal</option>
+                  <option value="iade">İade</option>
+                </select>
+              </div>
+              <div className="col-md-4">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Operator ID ile filtrele"
+                  value={operatorFilter}
+                  onChange={(e) => setOperatorFilter(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
           <table className="table table-hover">
             <thead>
               <tr>
@@ -145,7 +219,7 @@ function HatYonetim() {
               </tr>
             </thead>
             <tbody>
-              {simCards.map((sim) => (
+              {filteredSimCards.map((sim) => (
                 <tr key={sim.id}>
                   <td>{sim.id}</td>
                   <td>{sim.phone_number}</td>
@@ -155,8 +229,34 @@ function HatYonetim() {
                   <td>{sim.operator_id || "-"}</td>
                   <td>{sim.is_reallocated ? "Evet" : "Hayır"}</td>
                   <td>
-                    <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(sim)}>Düzenle</button>
-                    <button className="btn btn-sm btn-danger" onClick={() => handleDelete(sim.id)}>Sil</button>
+                    <button
+                      className="btn btn-sm me-2"
+                      style={{
+                        background: cardColors.tahsis,
+                        color: "#fff",
+                        fontWeight: 600,
+                        border: "none",
+                        borderRadius: "4px",
+                        padding: "2px 8px",
+                      }}
+                      onClick={() => handleEdit(sim)}
+                    >
+                      Düzenle
+                    </button>
+                    <button
+                      className="btn btn-sm"
+                      style={{
+                        background: cardColors.iade,
+                        color: "#fff",
+                        fontWeight: 600,
+                        border: "none",
+                        borderRadius: "4px",
+                        padding: "2px 8px",
+                      }}
+                      onClick={() => handleDelete(sim.id)}
+                    >
+                      Sil
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -165,8 +265,13 @@ function HatYonetim() {
         </div>
       </div>
 
+      {/* Modal */}
       {showModal && (
-        <div className="modal show d-block" tabIndex="-1" style={{ background: "rgba(0,0,0,0.5)" }}>
+        <div
+          className="modal show d-block"
+          tabIndex="-1"
+          style={{ background: "rgba(0,0,0,0.5)" }}
+        >
           <div className="modal-dialog">
             <div className="modal-content">
               <form onSubmit={handleSubmit}>
@@ -189,11 +294,22 @@ function HatYonetim() {
                   </div>
                   <div className="mb-3">
                     <label className="form-label">Package ID</label>
-                    <input type="number" className="form-control" name="package_id" value={formData.package_id} onChange={handleChange} />
+                    <input
+                      type="number"
+                      className="form-control"
+                      name="package_id"
+                      value={formData.package_id}
+                      onChange={handleChange}
+                    />
                   </div>
                   <div className="mb-3">
                     <label className="form-label">Durum</label>
-                    <select className="form-select" name="status" value={formData.status} onChange={handleChange}>
+                    <select
+                      className="form-select"
+                      name="status"
+                      value={formData.status}
+                      onChange={handleChange}
+                    >
                       <option value="stok">Stok</option>
                       <option value="aktif">Aktif</option>
                       <option value="iptal">İptal</option>
@@ -202,28 +318,62 @@ function HatYonetim() {
                   </div>
                   <div className="mb-3">
                     <label className="form-label">IP Adresi</label>
-                    <input type="text" className="form-control" name="ip_address" value={formData.ip_address} onChange={handleChange} />
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="ip_address"
+                      value={formData.ip_address}
+                      onChange={handleChange}
+                    />
                   </div>
                   <div className="form-check mb-3">
-                    <input type="checkbox" className="form-check-input" name="has_static_ip" checked={formData.has_static_ip} onChange={handleChange} />
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      name="has_static_ip"
+                      checked={formData.has_static_ip}
+                      onChange={handleChange}
+                    />
                     <label className="form-check-label">Statik IP</label>
                   </div>
                   <div className="mb-3">
                     <label className="form-label">Operator ID</label>
-                    <input type="number" className="form-control" name="operator_id" value={formData.operator_id} onChange={handleChange} />
+                    <input
+                      type="number"
+                      className="form-control"
+                      name="operator_id"
+                      value={formData.operator_id}
+                      onChange={handleChange}
+                    />
                   </div>
                   <div className="form-check mb-3">
-                    <input type="checkbox" className="form-check-input" name="is_reallocated" checked={formData.is_reallocated} onChange={handleChange} />
+                    <input
+                      type="checkbox"
+                      className="form-check-input"
+                      name="is_reallocated"
+                      checked={formData.is_reallocated}
+                      onChange={handleChange}
+                    />
                     <label className="form-check-label">Yeniden Tahsis Edildi</label>
                   </div>
                   <div className="mb-3">
                     <label className="form-label">Satın Alma Tarihi</label>
-                    <input type="date" className="form-control" name="purchase_date" value={formData.purchase_date} onChange={handleChange} />
+                    <input
+                      type="date"
+                      className="form-control"
+                      name="purchase_date"
+                      value={formData.purchase_date}
+                      onChange={handleChange}
+                    />
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary" onClick={closeModal}>Kapat</button>
-                  <button type="submit" className="btn btn-primary">Kaydet</button>
+                  <button type="button" className="btn btn-secondary" onClick={closeModal}>
+                    Kapat
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    Kaydet
+                  </button>
                 </div>
               </form>
             </div>
