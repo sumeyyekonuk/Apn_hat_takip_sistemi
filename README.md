@@ -34,7 +34,7 @@ Bazı modüller hâlen geliştirme aşamasındadır:
 
 ---
 
-## **Teknolojiler**
+## **Kullanılan Teknolojiler**
 
 - **Backend:** Node.js, Express, Sequelize  
 - **Database:** MySQL  
