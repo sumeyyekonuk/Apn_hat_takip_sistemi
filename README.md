@@ -41,15 +41,16 @@ Bazı modüller hâlen geliştirme aşamasındadır:
 - **Frontend:** React.js  
 - **API Test:** Postman
 
+**Login Ekranı:** Kullanıcı giriş formu burada yer almaktadır.
 ![Login ekranı](https://github.com/user-attachments/assets/2a670ab2-2cfb-4f8e-9f27-6c688534c443)
 
-**Login Ekranı:** Kullanıcı giriş formu burada yer almaktadır.
+**Dashboard:** Sistem genel görünümü ve hızlı istatistikler.
 ![Dashboard](https://github.com/user-attachments/assets/5041093d-9ee2-4129-af0b-d152c072b7de)
 
-**Dashboard:** Sistem genel görünümü ve hızlı istatistikler.
+**Sim Kartlar:** Sistemdeki stoktaki SIM kartların listesi.
 ![Sim Kartlar](https://github.com/user-attachments/assets/6ff4b38e-56fe-4f26-b7e4-687b069cf431)
 
-**Sim Kartlar:** Sistemdeki stoktaki SIM kartların listesi.
+
 
 
 
