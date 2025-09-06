@@ -50,6 +50,23 @@ Bazı modüller hâlen geliştirme aşamasındadır:
 **Sim Kartlar:** Sistemdeki stoktaki SIM kartların listesi.
 ![Sim Kartlar](https://github.com/user-attachments/assets/6ff4b38e-56fe-4f26-b7e4-687b069cf431)
 
+**Hat Yönetimi:** Sistemdeki hatların yönetildiği bölüm. 
+![WhatsApp Görsel 2025-09-06 saat 12 02 41_7f0f4d8b](https://github.com/user-attachments/assets/33db75d3-bba4-4f37-b086-96dc8e480eea)
+
+**Hat Tahsisi:** Hatların müşterilere tahsis edildiği ekran.  
+![WhatsApp Görsel 2025-09-06 saat 12 03 25_a3f5808f](https://github.com/user-attachments/assets/4bd1f6de-ce81-4a25-8d8d-bdb02e8b034b)
+
+**İade İşlemleri:** İade edilen sim kartların kaydedildiği ve yönetildiği bölüm.
+![WhatsApp Görsel 2025-09-06 saat 12 03 55_35fba621](https://github.com/user-attachments/assets/247427b1-2de3-4027-acee-ad5e5efddf8e)
+
+**Faturalar:** Sistemdeki fatura kayıtlarının listelendiği ve yönetildiği ekran.
+![WhatsApp Görsel 2025-09-06 saat 12 04 15_5fc8c99a](https://github.com/user-attachments/assets/b939334a-f857-4bd2-821a-d8c195330c5c)
+
+![WhatsApp Görsel 2025-09-06 saat 12 04 38_e35fe549](https://github.com/user-attachments/assets/9862941d-a109-48ec-82ee-b84d8ffd098e)
+
+
+
+
 
 
 
